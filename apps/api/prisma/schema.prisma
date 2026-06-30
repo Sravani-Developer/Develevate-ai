@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum InterviewType {
+  TECHNICAL
+  BEHAVIORAL
+  MIXED
+}
+
+enum SubscriptionStatus {
+  FREE
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+model User {
+  id                String           @id @default(cuid())
+  email             String           @unique
+  name              String
+  passwordHash      String?
+  googleId          String?          @unique
+  role              Role             @default(USER)
+  refreshTokenHash  String?
+  resetTokenHash    String?
+  resetTokenExpires DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  interviews        Interview[]
+  resumeAnalyses    ResumeAnalysis[]
+  roadmaps          Roadmap[]
+  codingRooms       CodingRoom[]     @relation("RoomOwner")
+  subscriptions     Subscription[]
+
+  @@index([role])
+  @@index([createdAt])
+}
+
+model Interview {
+  id          String        @id @default(cuid())
+  userId      String
+  role        String
+  stack       String[]
+  difficulty  Difficulty
+  type        InterviewType
+  score       Int?
+  strengths   String[]
+  weaknesses  String[]
+  suggestions String[]
+  questions   Json
+  answers     Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([difficulty])
+}
+
+model ResumeAnalysis {
+  id              String   @id @default(cuid())
+  userId          String
+  fileName        String
+  fileUrl         String?
+  extractedText   String
+  skills          String[]
+  projects        String[]
+  atsScore        Int
+  matchedKeywords String[]
+  missingKeywords String[]
+  improvements    String[]
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Roadmap {
+  id            String   @id @default(cuid())
+  userId        String
+  targetRole    String
+  currentSkills String[]
+  timelineWeeks Int
+  milestones    Json
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Subscription {
+  id               String             @id @default(cuid())
+  userId           String
+  plan             String
+  status           SubscriptionStatus @default(FREE)
+  providerCustomer String?
+  currentPeriodEnd DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model CodingRoom {
+  id        String   @id @default(cuid())
+  ownerId   String
+  title     String
+  language  String
+  code      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner     User     @relation("RoomOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, createdAt])
+}

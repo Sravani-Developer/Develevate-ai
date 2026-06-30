@@ -1,0 +1,40 @@
+{
+  "name": "develevate-ai",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Production-grade AI-powered developer interview and career SaaS platform.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "build": "npm run build -w packages/shared && npm run build -w apps/api && npm run build -w apps/web",
+    "lint": "npm run lint -ws --if-present",
+    "test": "npm run test -ws --if-present",
+    "typecheck": "npm run typecheck -ws --if-present",
+    "format": "node ./node_modules/prettier/bin/prettier.cjs --write \"**/*.{ts,tsx,js,json,md,css,yml,yaml}\""
+  },
+  "engines": {
+    "node": ">=20.11.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "concurrently": "^9.1.2",
+    "prettier": "^3.3.3",
+    "typescript": "^5.8.3"
+  },
+  "overrides": {
+    "@nestjs/common": "11.1.19",
+    "@nestjs/core": "11.1.19",
+    "@nestjs/platform-express": "11.1.19",
+    "@nestjs/platform-socket.io": "11.1.19",
+    "@nestjs/websockets": "11.1.19",
+    "dompurify": "3.4.2",
+    "file-type": "22.0.1",
+    "lodash": "4.18.1",
+    "multer": "2.1.1",
+    "postcss": "8.5.14"
+  }
+}

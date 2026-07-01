@@ -7,6 +7,9 @@ const config: Config = {
   transform: {
     "^.+\\.(t|j)s$": "ts-jest"
   },
+  moduleNameMapper: {
+    "^@develevate/shared$": "<rootDir>/../../packages/shared/src"
+  },
   collectCoverageFrom: ["src/**/*.(t|j)s"],
   testEnvironment: "node"
 };

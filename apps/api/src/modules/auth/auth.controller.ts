@@ -1,5 +1,5 @@
-import { Body, Controller, HttpCode, Post, Res, UseGuards } from "@nestjs/common";
-import { Response } from "express";
+import { Body, Controller, HttpCode, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Request, Response } from "express";
 import { authSchemas } from "@develevate/shared";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./jwt-auth.guard";
@@ -27,6 +27,14 @@ export class AuthController {
   @Post("login")
   async login(@Body() body: unknown, @Res({ passthrough: true }) response: Response) {
     const result = await this.auth.login(authSchemas.login.parse(body));
+    response.cookie("refreshToken", result.refreshToken, cookieOptions);
+    return { accessToken: result.accessToken };
+  }
+
+  @HttpCode(200)
+  @Post("refresh")
+  async refresh(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
+    const result = await this.auth.refresh(request.cookies?.refreshToken);
     response.cookie("refreshToken", result.refreshToken, cookieOptions);
     return { accessToken: result.accessToken };
   }

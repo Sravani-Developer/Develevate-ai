@@ -34,7 +34,18 @@ export class AuthService {
     return this.issueTokens(user.id, user.email, user.role);
   }
 
-  async refresh(userId: string, refreshToken: string) {
+  async refresh(refreshToken?: string) {
+    if (!refreshToken) throw new UnauthorizedException("Invalid refresh token");
+    let payload: { sub: string };
+    try {
+      payload = await this.jwt.verifyAsync<{ sub: string }>(refreshToken, {
+        secret: this.config.getOrThrow<string>("JWT_REFRESH_SECRET")
+      });
+    } catch {
+      throw new UnauthorizedException("Invalid refresh token");
+    }
+
+    const userId = payload.sub;
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user?.refreshTokenHash) throw new UnauthorizedException("Invalid refresh token");
     const ok = await bcrypt.compare(refreshToken, user.refreshTokenHash);

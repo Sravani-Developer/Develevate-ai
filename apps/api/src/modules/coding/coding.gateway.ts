@@ -1,5 +1,5 @@
-import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
-import { Server } from "socket.io";
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { Server, Socket } from "socket.io";
 import { CodingService } from "./coding.service";
 
 @WebSocketGateway({ namespace: "coding", cors: { origin: process.env.FRONTEND_URL, credentials: true } })
@@ -10,7 +10,8 @@ export class CodingGateway {
   constructor(private readonly coding: CodingService) {}
 
   @SubscribeMessage("room:join")
-  join(@MessageBody() body: { roomId: string }) {
+  join(@MessageBody() body: { roomId: string }, @ConnectedSocket() socket: Socket) {
+    socket.join(body.roomId);
     return { event: "room:joined", data: body };
   }
 

@@ -5,6 +5,7 @@ import { AnalyticsDashboard } from "@/features/analytics/analytics-dashboard";
 import { LoginCard } from "@/features/auth/login-card";
 import { CodingRoom } from "@/features/coding/coding-room";
 import { InterviewWorkbench } from "@/features/interviews/interview-workbench";
+import { PlatformOps } from "@/features/platform/platform-ops";
 import { ResumeAnalyzer } from "@/features/resume/resume-analyzer";
 import { RoadmapBuilder } from "@/features/roadmap/roadmap-builder";
 
@@ -42,20 +43,7 @@ export default function Page() {
         <ResumeAnalyzer />
         <RoadmapBuilder />
         <AnalyticsDashboard />
-        <section id="admin" className="grid gap-4 lg:grid-cols-3">
-          <Card>
-            <p className="font-semibold">Admin dashboard</p>
-            <p className="mt-2 text-sm text-muted-foreground">User counts, room activity, subscriptions, and platform usage rollups.</p>
-          </Card>
-          <Card>
-            <p className="font-semibold">Subscription system</p>
-            <p className="mt-2 text-sm text-muted-foreground">Free and pro plan boundaries with provider-ready checkout endpoint.</p>
-          </Card>
-          <Card>
-            <p className="font-semibold">Enterprise safeguards</p>
-            <p className="mt-2 text-sm text-muted-foreground">Rate limiting, Helmet, sanitization, secure cookies, RBAC, logging, and typed config.</p>
-          </Card>
-        </section>
+        <PlatformOps />
       </div>
     </AppShell>
   );

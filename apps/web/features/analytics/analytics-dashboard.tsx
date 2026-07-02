@@ -1,9 +1,21 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { api } from "@/lib/api";
+import { useSession } from "@/store/session";
 import { Card } from "@/components/ui/card";
 
-const scoreData = [
+type AnalyticsResponse = {
+  totalInterviews: number;
+  averageScore: number;
+  scoreSeries: Array<{ date: string; score: number }>;
+  weakAreas: Record<string, number>;
+  latestResumeScore: number | null;
+  roadmaps: number;
+};
+
+const fallbackScoreData = [
   { day: "Mon", score: 62 },
   { day: "Tue", score: 68 },
   { day: "Wed", score: 74 },
@@ -11,21 +23,59 @@ const scoreData = [
   { day: "Fri", score: 86 }
 ];
 
-const weaknessData = [
+const fallbackWeaknessData = [
   { name: "Systems", value: 6 },
   { name: "Behavioral", value: 3 },
   { name: "DSA", value: 4 }
 ];
 
 export function AnalyticsDashboard() {
+  const accessToken = useSession((state) => state.accessToken);
+  const [analytics, setAnalytics] = useState<AnalyticsResponse>();
+  const [status, setStatus] = useState("Sign in to load saved analytics.");
+
+  useEffect(() => {
+    if (!accessToken) return;
+    let ignore = false;
+    setStatus("Loading analytics...");
+    api<AnalyticsResponse>("/analytics", { accessToken })
+      .then((result) => {
+        if (ignore) return;
+        setAnalytics(result);
+        setStatus("Analytics loaded from backend.");
+      })
+      .catch((error) => {
+        if (ignore) return;
+        setStatus(error instanceof Error ? error.message : "Unable to load analytics.");
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [accessToken]);
+
+  const scoreData = useMemo(
+    () =>
+      analytics?.scoreSeries?.length
+        ? analytics.scoreSeries.map((item) => ({ day: new Date(item.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }), score: item.score }))
+        : fallbackScoreData,
+    [analytics?.scoreSeries]
+  );
+  const weaknessData = useMemo(
+    () => (analytics?.weakAreas ? Object.entries(analytics.weakAreas).map(([name, value]) => ({ name, value })) : fallbackWeaknessData),
+    [analytics?.weakAreas]
+  );
+
   return (
     <section id="analytics" className="space-y-4">
-      <h2 className="text-xl font-semibold">Analytics dashboard</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Analytics dashboard</h2>
+        <p className="text-xs text-muted-foreground">{status}</p>
+      </div>
       <div className="grid gap-4 lg:grid-cols-3">
         {[
-          ["Interviews", "24"],
-          ["Avg score", "82"],
-          ["Resume ATS", "84"]
+          ["Interviews", String(analytics?.totalInterviews ?? 24)],
+          ["Avg score", String(analytics?.averageScore ?? 82)],
+          ["Resume ATS", String(analytics?.latestResumeScore ?? 84)]
         ].map(([label, value]) => (
           <Card key={label}>
             <p className="text-sm text-muted-foreground">{label}</p>

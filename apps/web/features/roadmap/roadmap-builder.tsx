@@ -80,10 +80,18 @@ export function RoadmapBuilder() {
           <Map className="h-5 w-5 text-primary" />
           Career roadmap generator
         </h2>
-        <div className="grid gap-2 sm:grid-cols-[200px_260px_auto]">
-          <Input onChange={(event) => setTargetRole(event.target.value)} value={targetRole} />
-          <Input onChange={(event) => setCurrentSkills(event.target.value)} value={currentSkills} />
-          <Button disabled={loading} onClick={generateRoadmap}>{loading ? "Generating..." : "Generate"}</Button>
+        <div className="grid w-full max-w-4xl gap-3 sm:grid-cols-2">
+          <label className="block text-xs font-medium text-muted-foreground">
+            <span className="mb-2 block">Target role</span>
+            <Input aria-label="Target role" className="focus:ring-2" onChange={(event) => setTargetRole(event.target.value)} value={targetRole} />
+          </label>
+          <label className="block text-xs font-medium text-muted-foreground">
+            <span className="mb-2 block">Current skills</span>
+            <Input aria-label="Current skills" className="focus:ring-2" onChange={(event) => setCurrentSkills(event.target.value)} value={currentSkills} />
+          </label>
+          <Button className="sm:col-span-2 sm:justify-self-end" disabled={loading} onClick={generateRoadmap}>
+            {loading ? "Generating..." : "Generate"}
+          </Button>
         </div>
       </div>
       <Card>

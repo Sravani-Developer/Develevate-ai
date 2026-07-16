@@ -112,6 +112,15 @@ export function LoginCard() {
 
       {isLoggedIn ? (
         <div className="space-y-3">
+          <div className="rounded-md border border-border bg-primary/10 p-3 text-sm">
+            {mode === "demo" ? "Demo mode is active. You can test the app without the backend." : "Backend session is active. You can switch to demo mode for UI-only testing."}
+          </div>
+          {mode !== "demo" && (
+            <Button className="w-full bg-muted text-foreground" onClick={startDemoSession} type="button">
+              <Github className="h-4 w-4" />
+              Switch to demo mode
+            </Button>
+          )}
           <Button className="w-full" onClick={refresh} type="button">
             <RefreshCcw className="h-4 w-4" />
             Refresh session

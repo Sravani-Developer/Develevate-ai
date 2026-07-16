@@ -32,6 +32,7 @@ const fallbackQuestions: InterviewQuestion[] = [
 export function InterviewWorkbench() {
   const accessToken = useSession((state) => state.accessToken);
   const [active, setActive] = useState(0);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<"EASY" | "MEDIUM" | "HARD">("EASY");
   const [answer, setAnswer] = useState("");
   const [interview, setInterview] = useState<Interview>();
   const [loading, setLoading] = useState<"create" | "evaluate">();
@@ -134,10 +135,11 @@ export function InterviewWorkbench() {
           <div className="mb-3 inline-flex rounded-md border border-border bg-muted p-1">
             {(["EASY", "MEDIUM", "HARD"] as const).map((level, index) => (
               <button
-                className={`h-8 rounded px-3 text-sm ${active === index ? "bg-card text-foreground shadow-panel" : "text-muted-foreground"}`}
+                className={`h-8 rounded px-3 text-sm ${selectedDifficulty === level ? "bg-card text-foreground shadow-panel" : "text-muted-foreground"}`}
                 disabled={loading === "create"}
                 key={level}
                 onClick={() => {
+                  setSelectedDifficulty(level);
                   setActive(index);
                   void createInterview(level);
                 }}

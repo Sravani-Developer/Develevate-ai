@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { RefreshCcw } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "@/lib/api";
 import { useSession } from "@/store/session";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 type AnalyticsResponse = {
@@ -33,27 +35,30 @@ export function AnalyticsDashboard() {
   const accessToken = useSession((state) => state.accessToken);
   const [analytics, setAnalytics] = useState<AnalyticsResponse>();
   const [status, setStatus] = useState("Sign in to load saved analytics.");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  async function loadAnalytics() {
     if (!accessToken) {
       setStatus("Showing demo analytics. Start a demo session or backend API to refresh.");
       return;
     }
-    let ignore = false;
+    setLoading(true);
     setStatus("Loading analytics...");
-    api<AnalyticsResponse>("/analytics", { accessToken })
-      .then((result) => {
-        if (ignore) return;
-        setAnalytics(result);
-        setStatus("Analytics loaded from backend.");
-      })
-      .catch((error) => {
-        if (ignore) return;
-        setStatus(error instanceof Error ? `Backend unavailable, showing demo analytics. ${error.message}` : "Backend unavailable, showing demo analytics.");
-      });
-    return () => {
-      ignore = true;
-    };
+    try {
+      const result = await api<AnalyticsResponse>("/analytics", { accessToken });
+      setAnalytics(result);
+      setStatus("Analytics loaded from backend.");
+    } catch (error) {
+      setStatus(error instanceof Error ? `Backend unavailable, showing demo analytics. ${error.message}` : "Backend unavailable, showing demo analytics.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadAnalytics();
+    // loadAnalytics intentionally depends on accessToken only for initial section hydration.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
   const scoreData = useMemo(
@@ -72,7 +77,13 @@ export function AnalyticsDashboard() {
     <section id="analytics" className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Analytics dashboard</h2>
-        <p className="text-xs text-muted-foreground">{status}</p>
+        <div className="flex items-center gap-3">
+          <p className="text-xs text-muted-foreground">{status}</p>
+          <Button className="bg-muted text-foreground" disabled={loading} onClick={loadAnalytics} type="button">
+            <RefreshCcw className="h-4 w-4" />
+            {loading ? "Refreshing..." : "Refresh analytics"}
+          </Button>
+        </div>
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         {[

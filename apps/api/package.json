@@ -10,7 +10,8 @@
     "test": "node ../../node_modules/jest/bin/jest.js --runInBand",
     "typecheck": "npm run prisma:generate && node ../../node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
     "prisma:generate": "node ../../node_modules/prisma/build/index.js generate",
-    "prisma:migrate": "node ../../node_modules/prisma/build/index.js migrate dev"
+    "prisma:migrate": "node ../../node_modules/prisma/build/index.js migrate dev",
+    "prisma:seed": "node prisma/seed.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1045.0",

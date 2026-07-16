@@ -35,7 +35,10 @@ export function AnalyticsDashboard() {
   const [status, setStatus] = useState("Sign in to load saved analytics.");
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      setStatus("Showing demo analytics. Start a demo session or backend API to refresh.");
+      return;
+    }
     let ignore = false;
     setStatus("Loading analytics...");
     api<AnalyticsResponse>("/analytics", { accessToken })
@@ -46,7 +49,7 @@ export function AnalyticsDashboard() {
       })
       .catch((error) => {
         if (ignore) return;
-        setStatus(error instanceof Error ? error.message : "Unable to load analytics.");
+        setStatus(error instanceof Error ? `Backend unavailable, showing demo analytics. ${error.message}` : "Backend unavailable, showing demo analytics.");
       });
     return () => {
       ignore = true;

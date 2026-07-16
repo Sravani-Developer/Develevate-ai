@@ -9,3 +9,5 @@ coverage
 uploads
 *.log
 Dockerfile.local
+outputs
+project_file_extracts

@@ -41,9 +41,22 @@ export function InterviewWorkbench() {
   const activeQuestion = questions[active] ?? fallbackQuestion;
   const score = useMemo(() => interview?.score ?? 78 + active * 4, [active, interview?.score]);
 
+  function useDemoInterview(difficulty: "EASY" | "MEDIUM" | "HARD") {
+    setInterview({
+      id: "demo-interview",
+      questions: fallbackQuestions.map((question, index) => ({
+        ...question,
+        prompt: difficulty === "HARD" && index === 0 ? "Design a distributed rate limiter with Redis and failure handling." : question.prompt
+      }))
+    });
+    setActive(0);
+    setAnswer("");
+    setStatus("Demo interview generated locally. Start the API to save it.");
+  }
+
   async function createInterview(difficulty: "EASY" | "MEDIUM" | "HARD") {
     if (!accessToken) {
-      setStatus("Sign in first to generate interview questions.");
+      useDemoInterview(difficulty);
       return;
     }
     setLoading("create");
@@ -64,15 +77,16 @@ export function InterviewWorkbench() {
       setAnswer("");
       setStatus("Interview generated from backend.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Unable to generate interview.");
+      useDemoInterview(difficulty);
+      setStatus(error instanceof Error ? `Backend unavailable, showing demo questions. ${error.message}` : "Backend unavailable, showing demo questions.");
     } finally {
       setLoading(undefined);
     }
   }
 
   async function evaluateAnswer() {
-    if (!accessToken || !interview?.id) {
-      setStatus("Generate a backend interview before evaluating an answer.");
+    if (!interview?.id) {
+      setStatus("Generate an interview before evaluating an answer.");
       return;
     }
     if (!answer.trim()) {
@@ -81,6 +95,16 @@ export function InterviewWorkbench() {
     }
     setLoading("evaluate");
     setStatus("Evaluating answer...");
+    if (!accessToken || interview.id === "demo-interview") {
+      setInterview({
+        ...interview,
+        score: Math.min(95, 82 + Math.floor(answer.length / 120)),
+        suggestions: ["Demo feedback: add concrete metrics, edge cases, and a short tradeoff summary."]
+      });
+      setStatus("Demo evaluation generated locally. Start the API to save real AI feedback.");
+      setLoading(undefined);
+      return;
+    }
     try {
       const evaluated = await api<Interview>(`/interviews/${interview.id}/answers`, {
         accessToken,

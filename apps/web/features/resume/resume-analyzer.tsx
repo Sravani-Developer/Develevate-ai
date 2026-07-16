@@ -22,17 +22,27 @@ export function ResumeAnalyzer() {
   const [status, setStatus] = useState("Upload after sign-in to save resume analysis.");
   const [loading, setLoading] = useState(false);
 
+  function useDemoAnalysis(message = "Demo analysis generated locally. Start the API to save real resume analysis.") {
+    setAnalysis({
+      atsScore: 86,
+      matchedKeywords: ["TypeScript", "React", "NestJS", "PostgreSQL"],
+      missingKeywords: ["Observability", "Cloud deployment"],
+      improvements: ["Add measurable impact, deployment details, and role-specific keywords."]
+    });
+    setStatus(message);
+  }
+
   function onFileChange(event: ChangeEvent<HTMLInputElement>) {
     setFile(event.target.files?.[0]);
   }
 
   async function analyzeResume() {
     if (!accessToken) {
-      setStatus("Sign in first to analyze a resume.");
+      useDemoAnalysis("Demo analysis generated locally. Sign in with a running API to save uploads.");
       return;
     }
     if (!file) {
-      setStatus("Choose a resume file first.");
+      useDemoAnalysis("No file selected, so showing demo resume analysis.");
       return;
     }
     const formData = new FormData();
@@ -49,7 +59,7 @@ export function ResumeAnalyzer() {
       setAnalysis(result);
       setStatus("Resume analysis saved to backend.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Unable to analyze resume.");
+      useDemoAnalysis(error instanceof Error ? `Backend unavailable, showing demo analysis. ${error.message}` : "Backend unavailable, showing demo analysis.");
     } finally {
       setLoading(false);
     }
@@ -63,9 +73,9 @@ export function ResumeAnalyzer() {
       <Card className="grid gap-5 lg:grid-cols-2">
         <div className="rounded-md border border-dashed border-border p-6">
           <FileUp className="h-8 w-8 text-primary" />
-          <p className="mt-4 font-semibold">Upload PDF, DOCX, or text resume</p>
+          <p className="mt-4 font-semibold">Upload text or Markdown resume</p>
           <p className="text-sm text-muted-foreground">Extract skills, projects, ATS score, and job-description alignment.</p>
-          <input className="mt-5 block w-full text-sm" onChange={onFileChange} type="file" />
+          <input accept=".txt,.md,text/plain,text/markdown" className="mt-5 block w-full text-sm" onChange={onFileChange} type="file" />
           <textarea
             className="mt-4 min-h-24 w-full rounded-md border border-border bg-background p-3 text-sm outline-none focus:ring-4 focus:ring-primary/30"
             onChange={(event) => setJobDescription(event.target.value)}

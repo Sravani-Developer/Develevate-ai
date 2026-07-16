@@ -1,30 +1,150 @@
 # DevElevate AI
 
-Production-grade AI-powered developer interview and career platform built from the supplied specification.
+DevElevate AI is a full-stack developer interview and career platform. It combines AI mock interviews, collaborative coding rooms, resume analysis, career roadmap generation, analytics, subscriptions, and admin operations in one SaaS-style workspace.
 
-## Stack
+## What This Project Demonstrates
 
-- Frontend: Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn-style components, Zustand, TanStack Query, React Hook Form, Zod, Monaco Editor, Socket.io client
-- Backend: NestJS, Prisma, PostgreSQL, Redis, JWT refresh rotation, Passport, BullMQ, Pino, Multer, Socket.io
-- AI and external APIs: OpenAI for interview/resume/roadmap intelligence, Judge0 for code execution, S3-ready file storage boundary
-- DevOps: Docker Compose, CI workflow, environment-based config, test scripts
+- Production-style monorepo architecture with shared validation contracts.
+- JWT auth with refresh-token rotation and secure cookie support.
+- AI-backed workflows for interview feedback, resume review, and roadmap generation.
+- Realtime-ready coding room architecture with Socket.io and Judge0-ready execution.
+- PostgreSQL data modeling with Prisma and repeatable demo seeding.
+- CI verification for typecheck, tests, and production build.
+- Deployment-ready frontend/backend/infra configuration.
 
-## Quick Start
+## Tech Stack
+
+- Frontend: Next.js 15, React 19, TypeScript, Tailwind CSS, Zustand, React Hook Form, Zod, Monaco Editor, Recharts, Lucide icons.
+- Backend: NestJS, TypeScript, Prisma, PostgreSQL, Redis-ready config, JWT, Passport, Multer, Socket.io, Helmet, sanitization.
+- AI and integrations: OpenAI-ready AI service, Judge0-ready code execution, Google OAuth dependency, S3-ready storage boundary.
+- DevOps: npm workspaces, Docker Compose, GitHub Actions CI, Vercel/Render config.
+- Testing: Jest for API tests, Vitest and Testing Library for frontend smoke tests.
+
+## Monorepo Layout
+
+```text
+apps/
+  api/       NestJS API, Prisma schema, auth, AI, coding, resume, roadmap, analytics
+  web/       Next.js app and feature UI
+packages/
+  shared/    Shared Zod schemas and TypeScript types
+infra/       Vercel and Render deployment config
+```
+
+## Local Setup
+
+Requirements:
+
+- Node.js 20+
+- npm 10+
+- Docker Desktop, or separate PostgreSQL and Redis services
+
+Create env file:
 
 ```bash
 cp .env.example .env
-npm install
+```
+
+Start local services:
+
+```bash
 docker compose up -d postgres redis
-npm run build
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Generate Prisma client and run migrations:
+
+```bash
+npm run prisma:generate -w apps/api
+npm run prisma:migrate -w apps/api
+```
+
+Seed demo data:
+
+```bash
+npm run prisma:seed -w apps/api
+```
+
+Demo credentials:
+
+```text
+demo@develevate.ai / Password123!
+admin@develevate.ai / Password123!
+```
+
+Run the API and web app:
+
+```bash
 npm run dev -w apps/api
 npm run dev -w apps/web
 ```
 
-Frontend runs on `http://localhost:3000`; API runs on `http://localhost:4000`.
+Frontend: `http://localhost:3000`
+API: `http://localhost:4000`
 
-## Production Notes
+## Environment Variables
 
-- Deploy `apps/web` to Vercel.
-- Deploy `apps/api` to Railway or Render.
-- Use Neon PostgreSQL, Upstash Redis, and AWS S3.
-- Set secure secrets for JWT, cookies, OAuth, OpenAI, Judge0, and AWS.
+Required for core local backend:
+
+```text
+DATABASE_URL
+REDIS_URL
+JWT_ACCESS_SECRET
+JWT_REFRESH_SECRET
+COOKIE_SECRET
+FRONTEND_URL
+NEXT_PUBLIC_API_URL
+```
+
+Optional production integrations:
+
+```text
+OPENAI_API_KEY
+JUDGE0_API_URL
+JUDGE0_API_KEY
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+AWS_REGION
+AWS_S3_BUCKET
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+```
+
+## Verification
+
+```bash
+npm run typecheck
+npm test -- --runInBand
+npm run build
+```
+
+GitHub Actions runs the same verification flow on `main`.
+
+## Current Feature Coverage
+
+- Auth: email/password register/login, refresh endpoint, logout endpoint, demo-mode frontend fallback.
+- Interviews: create interview, answer/evaluate, save score and AI feedback.
+- Coding: create room, websocket room join, frontend code sync, chat, language/stdin controls, Judge0-ready execution endpoint.
+- Resume: upload endpoint and AI analysis boundary.
+- Roadmaps: AI-generated roadmap persistence.
+- Analytics: saved interview/resume/roadmap dashboard data.
+- Admin: role-protected platform overview.
+- Subscriptions: checkout endpoint and subscription state model.
+
+## Production Hardening Still Planned
+
+- Real Google OAuth strategy and callback UI.
+- Stripe Checkout and webhook-verified subscription state.
+- Real PDF/DOCX text extraction for resumes.
+- Redis-backed distributed rate limiting.
+- File-type validation and S3/R2 upload storage.
+- More integration and end-to-end tests.
+
+## Resume Positioning
+
+Full-stack AI-powered developer interview and career SaaS platform with JWT auth, Prisma/PostgreSQL persistence, AI mock interviews, collaborative coding rooms, resume intelligence, career roadmaps, analytics, admin controls, Dockerized infrastructure, CI/CD, and deployment-ready configuration.

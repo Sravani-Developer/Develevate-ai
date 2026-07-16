@@ -26,9 +26,19 @@ export function PlatformOps() {
   const [status, setStatus] = useState("Subscription and admin calls are ready after sign-in.");
   const [loading, setLoading] = useState<"subscription" | "admin">();
 
+  function useDemoSubscription(message = "Demo subscription activated locally. Start the API to save billing state.") {
+    setSubscription({ plan: "pro", status: "ACTIVE" });
+    setStatus(message);
+  }
+
+  function useDemoAdmin(message = "Demo admin overview loaded locally. Backend admin access requires an ADMIN account.") {
+    setAdmin({ users: 12, interviews: 24, resumes: 8, rooms: 5 });
+    setStatus(message);
+  }
+
   async function activateSubscription() {
     if (!accessToken) {
-      setStatus("Sign in first to activate a subscription.");
+      useDemoSubscription("Demo subscription activated locally. Sign in with a running API to save it.");
       return;
     }
     setLoading("subscription");
@@ -41,7 +51,7 @@ export function PlatformOps() {
       setSubscription(result);
       setStatus("Subscription endpoint responded successfully.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Unable to activate subscription.");
+      useDemoSubscription(error instanceof Error ? `Backend unavailable, using demo subscription. ${error.message}` : "Backend unavailable, using demo subscription.");
     } finally {
       setLoading(undefined);
     }
@@ -49,7 +59,7 @@ export function PlatformOps() {
 
   async function loadAdminOverview() {
     if (!accessToken) {
-      setStatus("Sign in as an admin to load platform overview.");
+      useDemoAdmin("Demo admin overview loaded locally. Sign in as ADMIN with a running API for real data.");
       return;
     }
     setLoading("admin");
@@ -58,7 +68,7 @@ export function PlatformOps() {
       setAdmin(result);
       setStatus("Admin overview loaded from backend.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Unable to load admin overview.");
+      useDemoAdmin(error instanceof Error ? `Backend unavailable or not admin, using demo overview. ${error.message}` : "Backend unavailable, using demo overview.");
     } finally {
       setLoading(undefined);
     }

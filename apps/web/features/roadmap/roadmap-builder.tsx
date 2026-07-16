@@ -33,9 +33,21 @@ export function RoadmapBuilder() {
   const [status, setStatus] = useState("Sign in to generate and save a personalized roadmap.");
   const [loading, setLoading] = useState(false);
 
+  function useDemoRoadmap(message = "Demo roadmap generated locally. Start the API to save personalized plans.") {
+    setRoadmap({
+      milestones: [
+        { week: 1, focus: `Map gaps for ${targetRole}`, deliverables: ["Skills inventory", "Interview baseline"] },
+        { week: 3, focus: "Build portfolio proof", deliverables: ["Full-stack feature", "Tests and CI"] },
+        { week: 7, focus: "Practice interviews", deliverables: ["Mock interview loop", "Resume iteration"] },
+        { week: 12, focus: "Launch applications", deliverables: ["Final resume", "Recruiter pipeline"] }
+      ]
+    });
+    setStatus(message);
+  }
+
   async function generateRoadmap() {
     if (!accessToken) {
-      setStatus("Sign in first to generate a roadmap.");
+      useDemoRoadmap("Demo roadmap generated locally. Sign in with a running API to save it.");
       return;
     }
     setLoading(true);
@@ -53,7 +65,7 @@ export function RoadmapBuilder() {
       setRoadmap(result);
       setStatus("Roadmap saved to backend.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Unable to generate roadmap.");
+      useDemoRoadmap(error instanceof Error ? `Backend unavailable, showing demo roadmap. ${error.message}` : "Backend unavailable, showing demo roadmap.");
     } finally {
       setLoading(false);
     }

@@ -18,6 +18,12 @@ export async function api<T>(path: string, init?: ApiInit): Promise<T> {
     ...init,
     headers
   });
-  if (!response.ok) throw new Error(await response.text());
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with ${response.status}`);
+  }
+  if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
+
+export { API_URL };

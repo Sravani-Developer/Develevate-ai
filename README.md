@@ -58,6 +58,12 @@ Install dependencies:
 npm install
 ```
 
+Check local readiness:
+
+```bash
+npm run doctor
+```
+
 Generate Prisma client and run migrations:
 
 ```bash
@@ -87,6 +93,15 @@ npm run dev -w apps/web
 
 Frontend: `http://localhost:3000`
 API: `http://localhost:4000`
+
+Operational checks:
+
+```text
+GET /api/health
+GET /api/health/ready
+```
+
+`/api/health` is a lightweight liveness check. `/api/health/ready` verifies database connectivity and reports optional integration configuration.
 
 ## Environment Variables
 
@@ -119,6 +134,7 @@ AWS_SECRET_ACCESS_KEY
 ## Verification
 
 ```bash
+npm run doctor
 npm run typecheck
 npm test -- --runInBand
 npm run test:e2e
@@ -137,6 +153,7 @@ GitHub Actions runs the same verification flow on `main`, including Playwright b
 - Analytics: saved interview/resume/roadmap dashboard data.
 - Admin: role-protected platform overview.
 - Subscriptions: checkout endpoint and subscription state model.
+- Operations: liveness and readiness endpoints for local setup and deployment checks.
 
 ## Production Hardening Still Planned
 

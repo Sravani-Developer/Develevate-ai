@@ -14,6 +14,7 @@
     "test": "npm run test -ws --if-present",
     "test:e2e": "node ./node_modules/@playwright/test/cli.js test",
     "typecheck": "npm run typecheck -ws --if-present",
+    "doctor": "node scripts/check-local-env.cjs",
     "format": "node ./node_modules/prettier/bin/prettier.cjs --write \"**/*.{ts,tsx,js,json,md,css,yml,yaml}\""
   },
   "engines": {

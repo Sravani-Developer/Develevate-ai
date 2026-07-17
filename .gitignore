@@ -11,3 +11,5 @@ uploads
 Dockerfile.local
 outputs
 project_file_extracts
+test-results
+playwright-report

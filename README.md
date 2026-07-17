@@ -7,6 +7,7 @@ DevElevate AI is a full-stack developer interview and career platform. It combin
 - Production-style monorepo architecture with shared validation contracts.
 - JWT auth with refresh-token rotation and secure cookie support.
 - AI-backed workflows for interview feedback, resume review, and roadmap generation.
+- Local deterministic fallback intelligence for no-cost demo and development flows.
 - Realtime-ready coding room architecture with Socket.io and Judge0-ready execution.
 - PostgreSQL data modeling with Prisma and repeatable demo seeding.
 - CI verification for typecheck, tests, and production build.
@@ -120,17 +121,18 @@ AWS_SECRET_ACCESS_KEY
 ```bash
 npm run typecheck
 npm test -- --runInBand
+npm run test:e2e
 npm run build
 ```
 
-GitHub Actions runs the same verification flow on `main`.
+GitHub Actions runs the same verification flow on `main`, including Playwright browser coverage for the demo product flows.
 
 ## Current Feature Coverage
 
 - Auth: email/password register/login, refresh endpoint, logout endpoint, demo-mode frontend fallback.
 - Interviews: create interview, answer/evaluate, save score and AI feedback.
 - Coding: create room, websocket room join, frontend code sync, chat, language/stdin controls, Judge0-ready execution endpoint.
-- Resume: upload endpoint and AI analysis boundary.
+- Resume: upload endpoint, PDF/DOCX/text/Markdown extraction, and AI analysis boundary.
 - Roadmaps: AI-generated roadmap persistence.
 - Analytics: saved interview/resume/roadmap dashboard data.
 - Admin: role-protected platform overview.
@@ -140,7 +142,6 @@ GitHub Actions runs the same verification flow on `main`.
 
 - Real Google OAuth strategy and callback UI.
 - Stripe Checkout and webhook-verified subscription state.
-- Real PDF/DOCX text extraction for resumes.
 - Redis-backed distributed rate limiting.
 - File-type validation and S3/R2 upload storage.
 - More integration and end-to-end tests.

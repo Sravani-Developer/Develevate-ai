@@ -73,9 +73,14 @@ export function ResumeAnalyzer() {
       <Card className="grid gap-5 lg:grid-cols-2">
         <div className="rounded-md border border-dashed border-border p-6">
           <FileUp className="h-8 w-8 text-primary" />
-          <p className="mt-4 font-semibold">Upload text or Markdown resume</p>
+          <p className="mt-4 font-semibold">Upload PDF, DOCX, text, or Markdown resume</p>
           <p className="text-sm text-muted-foreground">Extract skills, projects, ATS score, and job-description alignment.</p>
-          <input accept=".txt,.md,text/plain,text/markdown" className="mt-5 block w-full text-sm" onChange={onFileChange} type="file" />
+          <input
+            accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
+            className="mt-5 block w-full text-sm"
+            onChange={onFileChange}
+            type="file"
+          />
           <textarea
             className="mt-4 min-h-24 w-full rounded-md border border-border bg-background p-3 text-sm outline-none focus:ring-4 focus:ring-primary/30"
             onChange={(event) => setJobDescription(event.target.value)}

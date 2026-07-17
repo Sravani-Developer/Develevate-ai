@@ -15,17 +15,21 @@ export class AiService {
 
   async generateJson<T extends JsonValue>(system: string, user: string, fallback: T): Promise<T> {
     if (!this.client) return fallback;
-    const response = await this.client.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.3,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user }
-      ]
-    });
-    const content = response.choices[0]?.message.content;
-    return content ? (JSON.parse(content) as T) : fallback;
+    try {
+      const response = await this.client.chat.completions.create({
+        model: "gpt-4o-mini",
+        temperature: 0.3,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user }
+        ]
+      });
+      const content = response.choices[0]?.message.content;
+      return content ? (JSON.parse(content) as T) : fallback;
+    } catch {
+      return fallback;
+    }
   }
 
   async *streamEvaluation(prompt: string) {

@@ -36,7 +36,7 @@ infra/       Vercel and Render deployment config
 
 Requirements:
 
-- Node.js 20+
+- Node.js 18.20+
 - npm 10+
 - Docker Desktop, or separate PostgreSQL and Redis services
 
@@ -49,7 +49,7 @@ cp .env.example .env
 Start local services:
 
 ```bash
-docker compose up -d postgres redis
+npm run docker:up
 ```
 
 Install dependencies:
@@ -64,17 +64,23 @@ Check local readiness:
 npm run doctor
 ```
 
-Generate Prisma client and run migrations:
+Generate Prisma client and sync the local database:
 
 ```bash
-npm run prisma:generate -w apps/api
-npm run prisma:migrate -w apps/api
+npm run db:generate
+npm run db:push
 ```
 
 Seed demo data:
 
 ```bash
-npm run prisma:seed -w apps/api
+npm run db:seed
+```
+
+Or run the full free local setup in one command after creating `.env`:
+
+```bash
+npm run setup:local
 ```
 
 Demo credentials:
@@ -87,12 +93,19 @@ admin@develevate.ai / Password123!
 Run the API and web app:
 
 ```bash
-npm run dev -w apps/api
-npm run dev -w apps/web
+npm run dev:api
+npm run dev:web
 ```
 
 Frontend: `http://localhost:3000`
 API: `http://localhost:4000`
+
+For a no-cost reviewer walkthrough, see [docs/demo-walkthrough.md](docs/demo-walkthrough.md).
+For first-time Docker setup, see [docs/local-setup.md](docs/local-setup.md).
+For a system overview, see [docs/architecture.md](docs/architecture.md).
+For real backend validation, see [docs/backend-validation.md](docs/backend-validation.md).
+For planned next work, see [docs/roadmap.md](docs/roadmap.md).
+For contribution and verification expectations, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Operational checks:
 

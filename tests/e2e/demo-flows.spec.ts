@@ -18,7 +18,10 @@ test("demo mode supports the main product flows", async ({ page }) => {
 
   await page.getByRole("button", { name: /create room/i }).click();
   await expect(page.getByText(/Room: demo-room/)).toBeVisible();
+  await expect(page.getByText("Two Sum")).toBeVisible();
   await page.getByPlaceholder("stdin for your run").fill("9\n2 7 11 15");
+  await page.getByRole("button", { name: /review code/i }).click();
+  await expect(page.getByText(/hash map|complement/i).first()).toBeVisible();
   await page.getByRole("button", { name: /^Run$/ }).click();
   await expect(page.getByText(/demo run completed for javascript/i)).toBeVisible();
   await page.getByPlaceholder("Send a room message").fill("Can we optimize this to O(n)?");

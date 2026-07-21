@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose a product or engineering improvement.
+title: "Feature: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or engineering problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the feature, API, UX, or test change.
+    validations:
+      required: true
+  - type: dropdown
+    id: cost
+    attributes:
+      label: Cost profile
+      options:
+        - No-cost local/demo improvement
+        - Optional paid integration
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What must be true before this is complete?
+      placeholder: |
+        - Demo mode works without API keys
+        - Typecheck, tests, E2E, and build pass
+    validations:
+      required: true

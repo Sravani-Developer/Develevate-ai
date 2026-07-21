@@ -11,13 +11,20 @@ function sanitize(value: unknown): unknown {
   return value;
 }
 
+function sanitizeObjectInPlace(value: unknown) {
+  if (!value || typeof value !== "object") return;
+  for (const [key, item] of Object.entries(value)) {
+    (value as Record<string, unknown>)[key] = sanitize(item);
+  }
+}
+
 @Injectable()
 export class SanitizeInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<{ body?: unknown; query?: unknown; params?: unknown }>();
-    request.body = sanitize(request.body);
-    request.query = sanitize(request.query);
-    request.params = sanitize(request.params);
+    sanitizeObjectInPlace(request.body);
+    sanitizeObjectInPlace(request.query);
+    sanitizeObjectInPlace(request.params);
     return next.handle();
   }
 }

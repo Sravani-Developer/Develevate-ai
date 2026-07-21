@@ -1,5 +1,6 @@
 const fs = require("fs");
 const net = require("net");
+const path = require("path");
 const { execFileSync } = require("child_process");
 
 const requiredEnv = [
@@ -20,7 +21,7 @@ function add(status, label, detail) {
 }
 
 function commandVersion(command, args = ["--version"]) {
-  const candidates = process.platform === "win32" && !command.endsWith(".cmd") ? [command, `${command}.cmd`] : [command];
+  const candidates = process.platform === "win32" && !command.endsWith(".cmd") ? [command, `${command}.cmd`, ...windowsCommandCandidates(command)] : [command];
   for (const candidate of candidates) {
     try {
       return execFileSync(candidate, args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
@@ -29,6 +30,13 @@ function commandVersion(command, args = ["--version"]) {
     }
   }
   return undefined;
+}
+
+function windowsCommandCandidates(command) {
+  if (process.platform !== "win32") return [];
+  const localAppData = process.env.LOCALAPPDATA;
+  if (command !== "docker" || !localAppData) return [];
+  return [path.join(localAppData, "Programs", "DockerDesktop", "resources", "bin", "docker.exe")];
 }
 
 function compareVersions(actual, minimum) {
@@ -61,10 +69,10 @@ function readEnvFile() {
 
 function checkNode() {
   const nodeVersion = process.versions.node;
-  if (compareVersions(nodeVersion, "20.11.0") >= 0) {
+  if (compareVersions(nodeVersion, "18.20.0") >= 0) {
     add("pass", "Node.js", `Using ${nodeVersion}.`);
   } else {
-    add("fail", "Node.js", `Using ${nodeVersion}. Project requires >=20.11.0.`);
+    add("fail", "Node.js", `Using ${nodeVersion}. Project requires >=18.20.0.`);
   }
 
   const npmVersion = npmVersionFromEnv() ?? commandVersion("npm", ["--version"]);

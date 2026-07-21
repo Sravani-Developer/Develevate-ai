@@ -10,6 +10,7 @@
     "test": "node ../../node_modules/jest/bin/jest.js --runInBand",
     "typecheck": "npm run prisma:generate && node ../../node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
     "prisma:generate": "node ../../node_modules/prisma/build/index.js generate",
+    "prisma:push": "node ../../node_modules/prisma/build/index.js db push",
     "prisma:migrate": "node ../../node_modules/prisma/build/index.js migrate dev",
     "prisma:seed": "node prisma/seed.cjs"
   },

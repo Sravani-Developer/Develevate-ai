@@ -1,0 +1,22 @@
+Sravani Medagam
+Full Stack Developer
+
+Summary
+Full stack developer focused on production-style web applications with React, Next.js, TypeScript, Node.js, NestJS, PostgreSQL, Prisma, Docker, testing, and CI/CD workflows.
+
+Skills
+React, Next.js, TypeScript, JavaScript, Node.js, NestJS, PostgreSQL, Prisma, REST APIs, JWT Authentication, Socket.io, Tailwind CSS, Docker, GitHub Actions, Playwright, Jest, Vitest
+
+Projects
+DevElevate AI
+Built an AI-powered developer interview and career platform with mock interviews, collaborative coding rooms, resume analysis, career roadmaps, analytics, subscriptions, and admin operations.
+
+Key Contributions
+- Implemented secure authentication flows with JWT access tokens, refresh handling, and protected API routes.
+- Built a real-time coding room UI with Monaco editor, language selection, stdin controls, chat, and execution output.
+- Added PDF/DOCX resume parsing and local keyword-based resume analysis for no-cost development.
+- Created deterministic local fallback intelligence for interview feedback, roadmap generation, and resume scoring.
+- Added Playwright E2E coverage, Jest backend service coverage, CI checks, Docker Compose configuration, and readiness endpoints.
+
+Impact
+Improved project readiness with automated tests, production build validation, health checks, and clear demo flows for reviewers.

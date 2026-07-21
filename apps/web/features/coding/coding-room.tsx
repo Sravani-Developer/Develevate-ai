@@ -1,7 +1,7 @@
 "use client";
 
 import Editor from "@monaco-editor/react";
-import { MessageSquare, Play, Users } from "lucide-react";
+import { ClipboardCheck, MessageSquare, Play, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { API_URL, api } from "@/lib/api";
@@ -31,6 +31,17 @@ type ChatMessage = {
   sentAt: string;
 };
 
+const challenge = {
+  title: "Two Sum",
+  difficulty: "Easy",
+  prompt: "Given an array of integers and a target, return the indices of the two numbers that add up to the target.",
+  constraints: ["Exactly one valid answer exists", "Each input may be used once", "Aim for O(n) time and O(n) space"],
+  sample: {
+    stdin: "9\n2 7 11 15",
+    output: "0 1"
+  }
+};
+
 const languageOptions: Array<{ label: string; value: Language; editor: string }> = [
   { label: "JavaScript", value: "javascript", editor: "javascript" },
   { label: "TypeScript", value: "typescript", editor: "typescript" },
@@ -49,6 +60,9 @@ export function CodingRoom() {
   const [loading, setLoading] = useState<"room" | "run">();
   const [language, setLanguage] = useState<Language>("javascript");
   const [stdin, setStdin] = useState("");
+  const [review, setReview] = useState<string[]>([
+    "Create a room, add your solution, then run or review it for interview-style feedback."
+  ]);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [connected, setConnected] = useState(false);
@@ -143,6 +157,7 @@ export function CodingRoom() {
     const currentRoom = room ?? createDemoRoom();
     if (currentRoom.id === "demo-room" || !accessToken) {
       setOutput(`Demo run completed for ${language}.\nstdin:\n${stdin || "(empty)"}\n\nJudge0 execution is available when the backend API and JUDGE0 keys are configured.`);
+      setReview(reviewCodeLocally(code));
       return;
     }
     setLoading("run");
@@ -173,6 +188,10 @@ export function CodingRoom() {
     setMessage("");
   }
 
+  function reviewCode() {
+    setReview(reviewCodeLocally(code));
+  }
+
   const editorLanguage = languageOptions.find((item) => item.value === language)?.editor ?? "javascript";
 
   return (
@@ -199,18 +218,56 @@ export function CodingRoom() {
             <Play className="h-4 w-4" />
             {loading === "run" ? "Running..." : "Run"}
           </Button>
+          <Button className="bg-muted text-foreground" onClick={reviewCode}>
+            <ClipboardCheck className="h-4 w-4" />
+            Review code
+          </Button>
         </div>
       </div>
-      <Card className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="overflow-hidden rounded-md border border-border">
-          <Editor
-            height="420px"
-            language={editorLanguage}
-            theme="vs-dark"
-            value={code}
-            options={{ minimap: { enabled: false }, fontSize: 14 }}
-            onChange={(value) => setCode(value ?? "")}
-          />
+      <Card className="grid gap-4 xl:grid-cols-[260px_1fr_340px]">
+        <div className="rounded-md border border-border p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-semibold">{challenge.title}</p>
+            <span className="rounded bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">{challenge.difficulty}</span>
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">{challenge.prompt}</p>
+          <div className="mt-4">
+            <p className="text-sm font-semibold">Constraints</p>
+            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+              {challenge.constraints.map((item) => (
+                <li key={item}>- {item}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="mt-4 rounded-md bg-muted p-3 text-xs">
+            <p className="font-semibold">Sample stdin</p>
+            <pre className="mt-2 whitespace-pre-wrap">{challenge.sample.stdin}</pre>
+            <p className="mt-3 font-semibold">Expected output</p>
+            <pre className="mt-2 whitespace-pre-wrap">{challenge.sample.output}</pre>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div className="overflow-hidden rounded-md border border-border">
+            <Editor
+              height="420px"
+              language={editorLanguage}
+              theme="vs-dark"
+              value={code}
+              options={{ minimap: { enabled: false }, fontSize: 14 }}
+              onChange={(value) => setCode(value ?? "")}
+            />
+          </div>
+          <div className="rounded-md border border-border p-4">
+            <div className="flex items-center gap-2 font-semibold">
+              <ClipboardCheck className="h-4 w-4 text-primary" />
+              Local code review
+            </div>
+            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+              {review.map((item) => (
+                <li key={item}>- {item}</li>
+              ))}
+            </ul>
+          </div>
         </div>
         <div className="flex min-h-80 flex-col rounded-md border border-border p-4">
           <div className="flex items-center gap-2 font-semibold">
@@ -258,4 +315,41 @@ export function CodingRoom() {
       </Card>
     </section>
   );
+}
+
+function reviewCodeLocally(source: string) {
+  const normalized = source.toLowerCase();
+  const feedback: string[] = [];
+
+  if (/new\s+map|{}/i.test(source)) {
+    feedback.push("Good direction: a hash map/object lookup supports the expected O(n) solution.");
+  } else {
+    feedback.push("Consider using a hash map to store seen values and avoid nested loops.");
+  }
+
+  if (/for\s*\(|for\s+.*of|while\s*\(/i.test(source)) {
+    feedback.push("The solution includes iteration over the input, which is needed for this challenge.");
+  } else {
+    feedback.push("Add a loop over the input array and check each number against the target complement.");
+  }
+
+  if (normalized.includes("target") && (normalized.includes("need") || normalized.includes("complement"))) {
+    feedback.push("Good interview signal: complement logic is visible and easy to explain.");
+  } else {
+    feedback.push("Make the complement calculation explicit so the interviewer can follow your reasoning.");
+  }
+
+  if (/return\s+\[/.test(source)) {
+    feedback.push("Return shape appears aligned with the expected pair of indices.");
+  } else {
+    feedback.push("Return the two matching indices as an array when the pair is found.");
+  }
+
+  if (/console\.log|print\(|system\.out|cout/.test(source)) {
+    feedback.push("Output handling is present for local execution testing.");
+  } else {
+    feedback.push("Add output handling if you want to test through stdin/stdout runners.");
+  }
+
+  return feedback.slice(0, 5);
 }

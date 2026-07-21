@@ -9,16 +9,25 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "dev:api": "node scripts/run-with-env.cjs npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
     "build": "npm run build -w packages/shared && npm run build -w apps/api && npm run build -w apps/web",
     "lint": "npm run lint -ws --if-present",
     "test": "npm run test -ws --if-present",
     "test:e2e": "node ./node_modules/@playwright/test/cli.js test",
+    "test:e2e:backend": "node scripts/run-backend-e2e.cjs",
     "typecheck": "npm run typecheck -ws --if-present",
     "doctor": "node scripts/check-local-env.cjs",
+    "docker:up": "node scripts/run-docker.cjs compose up -d postgres redis",
+    "docker:down": "node scripts/run-docker.cjs compose down",
+    "db:generate": "npm run prisma:generate -w apps/api",
+    "db:push": "node scripts/run-with-env.cjs npm run prisma:push -w apps/api",
+    "db:seed": "node scripts/run-with-env.cjs npm run prisma:seed -w apps/api",
+    "setup:local": "npm run docker:up && npm run db:generate && npm run db:push && npm run db:seed && npm run doctor",
     "format": "node ./node_modules/prettier/bin/prettier.cjs --write \"**/*.{ts,tsx,js,json,md,css,yml,yaml}\""
   },
   "engines": {
-    "node": ">=20.11.0",
+    "node": ">=18.20.0",
     "npm": ">=10.0.0"
   },
   "devDependencies": {

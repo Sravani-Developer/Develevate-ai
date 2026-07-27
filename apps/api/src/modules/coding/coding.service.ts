@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { codingSchemas } from "@develevate/shared";
+import { codingSchemas, type CreateCodingRoomInput } from "@develevate/shared";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
@@ -10,13 +10,13 @@ export class CodingService {
     private readonly config: ConfigService
   ) {}
 
-  createRoom(userId: string, title: string, language = "typescript") {
+  createRoom(userId: string, input: CreateCodingRoomInput) {
     return this.prisma.codingRoom.create({
       data: {
         ownerId: userId,
-        title,
-        language,
-        code: "function solve(input) {\\n  return input;\\n}\\n"
+        title: input.title,
+        language: input.language,
+        code: input.code
       }
     });
   }

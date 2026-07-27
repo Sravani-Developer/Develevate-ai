@@ -19,9 +19,10 @@ describe("RoadmapsService", () => {
     });
 
     const created = prisma.roadmap.create.mock.calls[0][0].data;
-    expect(created.milestones).toHaveLength(5);
+    expect(created.milestones).toHaveLength(12);
     expect(created.milestones[0].focus).toContain("Full Stack AI Engineer");
-    expect(created.milestones[1].deliverables).toEqual(expect.arrayContaining(["Backend API", "Automated tests"]));
-    expect(created.milestones[4].metrics).toEqual(expect.arrayContaining(["Apply to 20 targeted roles"]));
+    expect(created.milestones[2].focus).toContain("React, TypeScript, NestJS, PostgreSQL");
+    expect(created.milestones[2].deliverables).toEqual(expect.arrayContaining(["Feature scope", "Working demo path"]));
+    expect(created.milestones[11].metrics).toEqual(expect.arrayContaining(["Apply to 20 targeted roles"]));
   });
 });

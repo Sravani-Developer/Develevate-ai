@@ -168,13 +168,13 @@ GitHub Actions runs the same verification flow on `main`, including Playwright b
 - Subscriptions: checkout endpoint and subscription state model.
 - Operations: liveness and readiness endpoints for local setup and deployment checks.
 
-## Production Hardening Still Planned
+## Optional Integrations
 
-- Real Google OAuth strategy and callback UI.
-- Stripe Checkout and webhook-verified subscription state.
-- Redis-backed distributed rate limiting.
-- File-type validation and S3/R2 upload storage.
-- More integration and end-to-end tests.
+- Google OAuth can be connected when external social login is required.
+- Stripe Checkout can replace the current no-cost subscription simulation when paid billing is required.
+- OpenAI and Judge0 keys can enable live AI evaluation and remote code execution; local deterministic behavior works without paid services.
+- S3/R2 storage can replace local upload handling when persistent cloud file storage is required.
+- Redis can be used for distributed rate limiting in multi-instance deployments.
 
 ## Resume Positioning
 

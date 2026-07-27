@@ -29,6 +29,7 @@ export const interviewSchemas = {
   create: z.object({
     role: z.string().min(2).max(80),
     stack: z.array(z.string().min(1)).min(1).max(12),
+    focus: z.string().max(240).optional(),
     difficulty: difficultySchema,
     type: z.enum(["TECHNICAL", "BEHAVIORAL", "MIXED"])
   }),
@@ -53,6 +54,11 @@ export const roadmapSchemas = {
 };
 
 export const codingSchemas = {
+  createRoom: z.object({
+    title: z.string().min(2).max(120),
+    language: z.enum(["javascript", "typescript", "python", "java", "cpp"]),
+    code: z.string().min(1).max(20000)
+  }),
   execute: z.object({
     roomId: z.string().min(1),
     language: z.enum(["javascript", "typescript", "python", "java", "cpp"]),
@@ -66,4 +72,5 @@ export type LoginInput = z.infer<typeof authSchemas.login>;
 export type CreateInterviewInput = z.infer<typeof interviewSchemas.create>;
 export type AnswerInterviewInput = z.infer<typeof interviewSchemas.answer>;
 export type CreateRoadmapInput = z.infer<typeof roadmapSchemas.create>;
+export type CreateCodingRoomInput = z.infer<typeof codingSchemas.createRoom>;
 export type ExecuteCodeInput = z.infer<typeof codingSchemas.execute>;

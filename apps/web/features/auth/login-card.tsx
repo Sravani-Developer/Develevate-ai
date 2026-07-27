@@ -22,14 +22,15 @@ export function LoginCard() {
   const clearSession = useSession((state) => state.clearSession);
   const [view, setView] = useState<"login" | "register">("login");
   const [status, setStatus] = useState("Use backend auth or start demo mode.");
+  const [formVersion, setFormVersion] = useState(0);
 
   const loginForm = useForm<LoginInput>({
     resolver: zodResolver(authSchemas.login),
-    defaultValues: { email: "demo@develevate.ai", password: "Password123!" }
+    defaultValues: { email: "", password: "" }
   });
   const registerForm = useForm<RegisterInput>({
     resolver: zodResolver(authSchemas.register),
-    defaultValues: { name: "Sravani", email: "demo@develevate.ai", password: "Password123!" }
+    defaultValues: { name: "", email: "", password: "" }
   });
 
   async function login(values: LoginInput) {
@@ -42,7 +43,7 @@ export function LoginCard() {
       setSession(result.accessToken, "authenticated");
       setStatus("Signed in with backend session.");
     } catch (error) {
-      setStatus(error instanceof Error ? `Backend login failed: ${error.message}` : "Backend login failed.");
+      setStatus(isInvalidCredentials(error) ? "Invalid email or password." : error instanceof Error ? `Unable to sign in: ${error.message}` : "Unable to sign in.");
     }
   }
 
@@ -56,7 +57,7 @@ export function LoginCard() {
       setSession(result.accessToken, "authenticated");
       setStatus("Account created and signed in.");
     } catch (error) {
-      setStatus(error instanceof Error ? `Registration failed: ${error.message}` : "Registration failed.");
+      setStatus(error instanceof Error ? `Unable to create account: ${error.message}` : "Unable to create account.");
     }
   }
 
@@ -80,6 +81,10 @@ export function LoginCard() {
       }
     }
     clearSession();
+    loginForm.reset({ email: "", password: "" });
+    registerForm.reset({ name: "", email: "", password: "" });
+    setView("login");
+    setFormVersion((version) => version + 1);
     setStatus("Signed out.");
   }
 
@@ -95,7 +100,7 @@ export function LoginCard() {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Secure access</h2>
-          <p className="text-sm text-muted-foreground">{isLoggedIn ? `${mode === "demo" ? "Demo" : "Backend"} session active.` : "JWT cookies, refresh rotation, OAuth-ready."}</p>
+          <p className="text-sm text-muted-foreground">{isLoggedIn ? `${mode === "demo" ? "Demo" : "Backend"} session active.` : "Register a new account or sign in with your credentials."}</p>
         </div>
         <LogIn className="h-5 w-5 text-primary" />
       </div>
@@ -131,19 +136,19 @@ export function LoginCard() {
           </Button>
         </div>
       ) : view === "login" ? (
-        <form className="space-y-3" onSubmit={loginForm.handleSubmit(login)}>
-          <Input placeholder="Email" {...loginForm.register("email")} />
-          <Input placeholder="Password" type="password" {...loginForm.register("password")} />
+        <form autoComplete="off" className="space-y-3" key={`login-${formVersion}`} onSubmit={loginForm.handleSubmit(login)}>
+          <Input autoComplete="username" placeholder="Email" {...loginForm.register("email")} />
+          <Input autoComplete="current-password" placeholder="Password" type="password" {...loginForm.register("password")} />
           <Button className="w-full" type="submit">
             <LogIn className="h-4 w-4" />
             Sign in
           </Button>
         </form>
       ) : (
-        <form className="space-y-3" onSubmit={registerForm.handleSubmit(register)}>
-          <Input placeholder="Name" {...registerForm.register("name")} />
-          <Input placeholder="Email" {...registerForm.register("email")} />
-          <Input placeholder="Password" type="password" {...registerForm.register("password")} />
+        <form autoComplete="off" className="space-y-3" key={`register-${formVersion}`} onSubmit={registerForm.handleSubmit(register)}>
+          <Input autoComplete="name" placeholder="Name" {...registerForm.register("name")} />
+          <Input autoComplete="email" placeholder="Email" {...registerForm.register("email")} />
+          <Input autoComplete="new-password" placeholder="Password" type="password" {...registerForm.register("password")} />
           <Button className="w-full" type="submit">
             <UserPlus className="h-4 w-4" />
             Create account
@@ -160,4 +165,8 @@ export function LoginCard() {
       <p className="mt-3 text-xs text-muted-foreground">{status}</p>
     </Card>
   );
+}
+
+function isInvalidCredentials(error: unknown) {
+  return error instanceof Error && /invalid credentials|unauthorized/i.test(error.message);
 }

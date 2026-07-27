@@ -7,27 +7,13 @@ type SessionState = {
   clearSession: () => void;
 };
 
-const storageKey = "develevate-session";
-
 function loadSession() {
-  if (typeof window === "undefined") return { accessToken: undefined, mode: "anonymous" as const };
-  try {
-    const value = window.localStorage.getItem(storageKey);
-    if (!value) return { accessToken: undefined, mode: "anonymous" as const };
-    const parsed = JSON.parse(value) as Pick<SessionState, "accessToken" | "mode">;
-    return parsed.accessToken ? { accessToken: parsed.accessToken, mode: parsed.mode ?? "authenticated" } : { accessToken: undefined, mode: "anonymous" as const };
-  } catch {
-    return { accessToken: undefined, mode: "anonymous" as const };
-  }
+  return { accessToken: undefined, mode: "anonymous" as const };
 }
 
 function persistSession(accessToken: string | undefined, mode: SessionState["mode"]) {
-  if (typeof window === "undefined") return;
-  if (!accessToken || mode === "anonymous") {
-    window.localStorage.removeItem(storageKey);
-    return;
-  }
-  window.localStorage.setItem(storageKey, JSON.stringify({ accessToken, mode }));
+  void accessToken;
+  void mode;
 }
 
 export const useSession = create<SessionState>((set) => ({

@@ -21,24 +21,16 @@ type AdminOverview = {
 
 export function PlatformOps() {
   const accessToken = useSession((state) => state.accessToken);
+  const mode = useSession((state) => state.mode);
   const [subscription, setSubscription] = useState<Subscription>();
   const [admin, setAdmin] = useState<AdminOverview>();
   const [status, setStatus] = useState("Subscription and admin calls are ready after sign-in.");
   const [loading, setLoading] = useState<"subscription" | "admin">();
 
-  function useDemoSubscription(message = "Demo subscription activated locally. Start the API to save billing state.") {
-    setSubscription({ plan: "pro", status: "ACTIVE" });
-    setStatus(message);
-  }
-
-  function useDemoAdmin(message = "Demo admin overview loaded locally. Backend admin access requires an ADMIN account.") {
-    setAdmin({ users: 12, interviews: 24, resumes: 8, rooms: 5 });
-    setStatus(message);
-  }
-
   async function activateSubscription() {
-    if (!accessToken) {
-      useDemoSubscription("Demo subscription activated locally. Sign in with a running API to save it.");
+    if (!accessToken || mode !== "authenticated") {
+      setSubscription(undefined);
+      setStatus("Sign in to activate a subscription.");
       return;
     }
     setLoading("subscription");
@@ -51,15 +43,17 @@ export function PlatformOps() {
       setSubscription(result);
       setStatus("Subscription endpoint responded successfully.");
     } catch (error) {
-      useDemoSubscription(error instanceof Error ? `Backend unavailable, using demo subscription. ${error.message}` : "Backend unavailable, using demo subscription.");
+      setSubscription(undefined);
+      setStatus(error instanceof Error ? `Unable to activate subscription. ${error.message}` : "Unable to activate subscription.");
     } finally {
       setLoading(undefined);
     }
   }
 
   async function loadAdminOverview() {
-    if (!accessToken) {
-      useDemoAdmin("Demo admin overview loaded locally. Sign in as ADMIN with a running API for real data.");
+    if (!accessToken || mode !== "authenticated") {
+      setAdmin(undefined);
+      setStatus("Sign in as an ADMIN user to load platform overview.");
       return;
     }
     setLoading("admin");
@@ -68,7 +62,8 @@ export function PlatformOps() {
       setAdmin(result);
       setStatus("Admin overview loaded from backend.");
     } catch (error) {
-      useDemoAdmin(error instanceof Error ? `Backend unavailable or not admin, using demo overview. ${error.message}` : "Backend unavailable, using demo overview.");
+      setAdmin(undefined);
+      setStatus(error instanceof Error ? `Unable to load admin overview. ${error.message}` : "Unable to load admin overview.");
     } finally {
       setLoading(undefined);
     }

@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Mic, Play, Sparkles } from "lucide-react";
+import { Play, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
 import { useSession } from "@/store/session";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 type InterviewQuestion = {
   id: string;
@@ -22,33 +23,33 @@ type Interview = {
   suggestions?: string[];
 };
 
-const fallbackQuestion: InterviewQuestion = { id: "q1", prompt: "Design a rate limiter for a public API.", category: "systems" };
-const fallbackQuestions: InterviewQuestion[] = [
-  fallbackQuestion,
-  { id: "q2", prompt: "Tell me about a time you improved system reliability.", category: "behavioral" },
-  { id: "q3", prompt: "How would you evaluate tradeoffs between SQL and NoSQL?", category: "technical" }
-];
-
 export function InterviewWorkbench() {
   const accessToken = useSession((state) => state.accessToken);
+  const mode = useSession((state) => state.mode);
   const [active, setActive] = useState(0);
   const [selectedDifficulty, setSelectedDifficulty] = useState<"EASY" | "MEDIUM" | "HARD">("EASY");
+  const [role, setRole] = useState("");
+  const [stack, setStack] = useState("");
+  const [focus, setFocus] = useState("");
   const [answer, setAnswer] = useState("");
   const [interview, setInterview] = useState<Interview>();
   const [loading, setLoading] = useState<"create" | "evaluate">();
-  const [status, setStatus] = useState("Sign in, then generate a real interview from the API.");
+  const [status, setStatus] = useState("Enter a target role and stack, then choose a difficulty to generate questions.");
 
-  const questions = interview?.questions?.length ? interview.questions : fallbackQuestions;
-  const activeQuestion = questions[active] ?? fallbackQuestion;
-  const score = useMemo(() => interview?.score ?? 78 + active * 4, [active, interview?.score]);
+  const questions = interview?.questions ?? [];
+  const activeQuestion = questions[active];
+  const score = useMemo(() => interview?.score ?? (interview ? 78 + active * 4 : undefined), [active, interview]);
+  const stackList = stack
+    .split(",")
+    .map((skill) => skill.trim())
+    .filter(Boolean);
+  const canGenerate = Boolean(role.trim() && stackList.length);
 
   function useDemoInterview(difficulty: "EASY" | "MEDIUM" | "HARD") {
+    setSelectedDifficulty(difficulty);
     setInterview({
       id: "demo-interview",
-      questions: fallbackQuestions.map((question, index) => ({
-        ...question,
-        prompt: difficulty === "HARD" && index === 0 ? "Design a distributed rate limiter with Redis and failure handling." : question.prompt
-      }))
+      questions: createDemoQuestions(difficulty, role.trim(), stackList, focus.trim())
     });
     setActive(0);
     setAnswer("");
@@ -56,7 +57,15 @@ export function InterviewWorkbench() {
   }
 
   async function createInterview(difficulty: "EASY" | "MEDIUM" | "HARD") {
-    if (!accessToken) {
+    setSelectedDifficulty(difficulty);
+    if (!canGenerate) {
+      setInterview(undefined);
+      setActive(0);
+      setAnswer("");
+      setStatus("Enter both target role and interview stack before generating questions.");
+      return;
+    }
+    if (!accessToken || mode !== "authenticated") {
       useDemoInterview(difficulty);
       return;
     }
@@ -67,8 +76,9 @@ export function InterviewWorkbench() {
         accessToken,
         method: "POST",
         body: JSON.stringify({
-          role: "Full-stack developer",
-          stack: ["TypeScript", "React", "NestJS", "PostgreSQL"],
+          role: role.trim(),
+          stack: stackList,
+          focus: focus.trim() || undefined,
           difficulty,
           type: "MIXED"
         })
@@ -90,13 +100,17 @@ export function InterviewWorkbench() {
       setStatus("Generate an interview before evaluating an answer.");
       return;
     }
+    if (!activeQuestion) {
+      setStatus("Choose a generated question before evaluating an answer.");
+      return;
+    }
     if (!answer.trim()) {
       setStatus("Write an answer before evaluation.");
       return;
     }
     setLoading("evaluate");
     setStatus("Evaluating answer...");
-    if (!accessToken || interview.id === "demo-interview") {
+    if (!accessToken || mode !== "authenticated" || interview.id === "demo-interview") {
       setInterview({
         ...interview,
         score: Math.min(95, 82 + Math.floor(answer.length / 120)),
@@ -125,34 +139,72 @@ export function InterviewWorkbench() {
     <section id="interviews" className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">AI mock interview</h2>
-        <Button title="Start voice interview">
-          <Mic className="h-4 w-4" />
-          Voice
-        </Button>
       </div>
       <Card className="grid gap-5 lg:grid-cols-[1.4fr_0.8fr]">
         <div>
-          <div className="mb-3 inline-flex rounded-md border border-border bg-muted p-1">
-            {(["EASY", "MEDIUM", "HARD"] as const).map((level, index) => (
-              <button
-                className={`h-8 rounded px-3 text-sm ${selectedDifficulty === level ? "bg-card text-foreground shadow-panel" : "text-muted-foreground"}`}
-                disabled={loading === "create"}
-                key={level}
-                onClick={() => {
-                  setSelectedDifficulty(level);
-                  setActive(index);
-                  void createInterview(level);
-                }}
-              >
-                {level[0] + level.slice(1).toLowerCase()}
-              </button>
-            ))}
+          <div className="mb-4 grid gap-3 md:grid-cols-2">
+            <label className="block text-xs font-medium text-muted-foreground">
+              <span className="mb-2 block">Target role</span>
+              <Input aria-label="Interview target role" onChange={(event) => setRole(event.target.value)} placeholder="Example: Senior Frontend Developer" value={role} />
+            </label>
+            <label className="block text-xs font-medium text-muted-foreground">
+              <span className="mb-2 block">Interview stack</span>
+              <Input aria-label="Interview stack" onChange={(event) => setStack(event.target.value)} placeholder="Example: React, Next.js, TypeScript, PostgreSQL" value={stack} />
+            </label>
+            <label className="block text-xs font-medium text-muted-foreground md:col-span-2">
+              <span className="mb-2 block">Question focus</span>
+              <Input aria-label="Interview focus" onChange={(event) => setFocus(event.target.value)} placeholder="Example: authentication, resume analyzer, system design, deployment" value={focus} />
+            </label>
           </div>
+          <div className="mb-3 flex flex-wrap items-center gap-3">
+            <div className="inline-flex rounded-md border border-border bg-muted p-1">
+              {(["EASY", "MEDIUM", "HARD"] as const).map((level) => (
+                <button
+                  className={`h-8 rounded px-3 text-sm ${selectedDifficulty === level ? "bg-card text-foreground shadow-panel" : "text-muted-foreground"}`}
+                  disabled={loading === "create"}
+                  key={level}
+                  onClick={() => {
+                    setSelectedDifficulty(level);
+                  }}
+                >
+                  {level[0] + level.slice(1).toLowerCase()}
+                </button>
+              ))}
+            </div>
+            <Button disabled={!canGenerate || loading === "create"} onClick={() => void createInterview(selectedDifficulty)}>
+              <Sparkles className="h-4 w-4" />
+              {loading === "create" ? "Generating..." : "Generate questions"}
+            </Button>
+            <p className="text-xs text-muted-foreground">Questions are generated from the role, stack, focus, and difficulty you enter.</p>
+          </div>
+          {!!questions.length && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {questions.map((question, index) => (
+                <button
+                  className={`rounded-md border px-3 py-2 text-xs ${active === index ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground"}`}
+                  key={question.id}
+                  onClick={() => {
+                    setActive(index);
+                    setAnswer("");
+                  }}
+                  type="button"
+                >
+                  Q{index + 1} {question.category ? `- ${question.category}` : ""}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="rounded-md border border-border p-4">
-            <p className="text-sm text-muted-foreground">
-              Question {active + 1} {activeQuestion.category ? `- ${activeQuestion.category}` : ""}
-            </p>
-            <p className="mt-2 text-lg font-semibold">{activeQuestion.prompt}</p>
+            {activeQuestion ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Question {active + 1} {activeQuestion.category ? `- ${activeQuestion.category}` : ""}
+                </p>
+                <p className="mt-2 text-lg font-semibold">{activeQuestion.prompt}</p>
+              </>
+            ) : (
+              <div className="rounded-md bg-muted p-4 text-sm text-muted-foreground">No question generated yet. Enter role, stack, and optional focus, then select Easy, Medium, or Hard.</div>
+            )}
             <textarea
               className="mt-4 min-h-32 w-full rounded-md border border-border bg-background p-3 text-sm outline-none focus:ring-4 focus:ring-primary/30"
               onChange={(event) => setAnswer(event.target.value)}
@@ -166,7 +218,7 @@ export function InterviewWorkbench() {
             <Sparkles className="h-4 w-4 text-primary" />
             Backend evaluation
           </div>
-          <div className="mt-4 text-4xl font-bold">{score}</div>
+          <div className="mt-4 text-4xl font-bold">{score ?? "--"}</div>
           <p className="text-sm text-muted-foreground">
             {interview?.suggestions?.[0] ?? interview?.weaknesses?.[0] ?? "Generate and evaluate to replace demo scoring with saved AI feedback."}
           </p>
@@ -179,4 +231,33 @@ export function InterviewWorkbench() {
       </Card>
     </section>
   );
+}
+
+function createDemoQuestions(difficulty: "EASY" | "MEDIUM" | "HARD", role: string, stack: string[], focus?: string): InterviewQuestion[] {
+  const stackText = stack.length ? stack.slice(0, 4).join(", ") : "your stack";
+  const roleText = role.trim();
+  const focusText = focus?.trim() || `${roleText} interview readiness`;
+  const prompts = {
+    EASY: [
+      `For ${focusText}, explain how you would build a small ${roleText} feature using ${stackText}. Focus on clear steps, data flow, and edge cases.`,
+      `For ${focusText}, what frontend and backend responsibilities would you separate in a ${roleText} feature?`,
+      `How would you test a simple ${focusText} feature built with ${stackText}?`
+    ],
+    MEDIUM: [
+      `Design an authenticated ${focusText} workflow for a ${roleText} role using ${stackText}. Include API boundaries, data flow, testing, and tradeoffs.`,
+      `How would you model data and validation for a medium-complexity ${focusText} feature?`,
+      `A user reports intermittent failures in a ${focusText} workflow built with ${stackText}. How would you debug it?`
+    ],
+    HARD: [
+      `Design a production-ready ${focusText} feature for a ${roleText} role using ${stackText}. Include scaling limits, failure modes, observability, and tradeoffs.`,
+      `How would you handle high traffic, retries, and partial failures in a ${focusText} system using ${stackText}?`,
+      `Create a rollout and monitoring plan for a risky ${focusText} release.`
+    ]
+  }[difficulty];
+
+  return prompts.map((prompt, index) => ({
+    id: `demo-${difficulty.toLowerCase()}-${index + 1}`,
+    prompt,
+    category: index === 0 ? "technical" : index === 1 ? "systems" : "debugging"
+  }));
 }

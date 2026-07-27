@@ -5,7 +5,7 @@ services:
     plan: starter
     buildCommand: npm ci && npm run build -w packages/shared && npm run build -w apps/api
     startCommand: npm run start -w apps/api
-    healthCheckPath: /api/analytics
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
@@ -22,4 +22,6 @@ services:
       - key: OPENAI_API_KEY
         sync: false
       - key: JUDGE0_API_KEY
+        sync: false
+      - key: JUDGE0_API_URL
         sync: false

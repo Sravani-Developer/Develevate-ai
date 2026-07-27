@@ -7,12 +7,25 @@ test.describe("backend-authenticated flows", () => {
     await page.goto("/");
 
     const signInForm = page.locator("#auth form").first();
-    await expect(signInForm.getByPlaceholder("Email")).toHaveValue("demo@develevate.ai");
-    await expect(signInForm.getByPlaceholder("Password")).toHaveValue("Password123!");
+    await expect(signInForm.getByPlaceholder("Email")).toHaveValue("");
+    await expect(signInForm.getByPlaceholder("Password")).toHaveValue("");
+    await signInForm.getByPlaceholder("Email").fill("demo@develevate.ai");
+    await signInForm.getByPlaceholder("Password").fill("Password123!");
     await signInForm.getByRole("button", { name: /^Sign in$/ }).click();
     await expect(page.getByText(/backend session active/i)).toBeVisible();
 
+    await page.getByLabel("Interview target role").fill("Senior Frontend Developer");
+    await page.getByLabel("Interview stack").fill("React, Next.js, TypeScript, Tailwind CSS");
+    await page.getByLabel("Interview focus").fill("dashboard filtering and role-based access");
+    await page.getByRole("button", { name: "Medium" }).click();
+    await page.getByRole("button", { name: /generate questions/i }).click();
+    await expect(page.getByRole("button", { name: "Medium" })).toHaveClass(/bg-card/);
+    await expect(page.getByText(/interview generated from backend|backend unavailable/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Medium" })).toHaveClass(/bg-card/);
+
     await page.getByRole("button", { name: "Hard" }).click();
+    await page.getByRole("button", { name: /generate questions/i }).click();
+    await expect(page.getByRole("button", { name: "Hard" })).toHaveClass(/bg-card/);
     await expect(page.getByText(/interview generated from backend|backend unavailable/i)).toBeVisible();
 
     await page
@@ -21,9 +34,9 @@ test.describe("backend-authenticated flows", () => {
     await page.getByRole("button", { name: /evaluate answer/i }).click();
     await expect(page.getByText(/evaluation saved to backend|demo evaluation generated locally/i)).toBeVisible();
 
-    await page.getByLabel("Target role").fill("Full Stack AI Engineer");
-    await page.getByLabel("Current skills").fill("React, TypeScript, NestJS, PostgreSQL");
+    await page.getByLabel("Target role", { exact: true }).fill("Product Manager");
+    await page.getByLabel("Current skills", { exact: true }).fill("Roadmapping, stakeholder management, analytics, user research");
     await page.getByRole("button", { name: /^Generate$/ }).click();
-    await expect(page.getByText(/roadmap saved to backend|backend unavailable, showing demo roadmap/i)).toBeVisible();
+    await expect(page.getByText(/roadmap saved to backend|backend unavailable|sign in to save/i)).toBeVisible();
   });
 });

@@ -1,7 +1,20 @@
 const fs = require("fs");
+const path = require("path");
 const { spawnSync } = require("child_process");
 
+function findEnvFile(startDir) {
+  let current = startDir;
+  while (true) {
+    const candidate = path.join(current, ".env");
+    if (fs.existsSync(candidate)) return candidate;
+    const parent = path.dirname(current);
+    if (parent === current) return undefined;
+    current = parent;
+  }
+}
+
 function loadEnvFile(file) {
+  if (!file) return {};
   if (!fs.existsSync(file)) return {};
 
   const env = {};
@@ -32,7 +45,7 @@ const result = spawnSync(command, args, {
   shell: process.platform === "win32",
   env: {
     ...process.env,
-    ...loadEnvFile(".env")
+    ...loadEnvFile(findEnvFile(process.cwd()))
   }
 });
 

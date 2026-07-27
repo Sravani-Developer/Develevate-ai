@@ -67,39 +67,63 @@ export class InterviewsService {
 
 function createLocalInterview(input: CreateInterviewInput) {
   const stack = input.stack.slice(0, 4).join(", ");
-  const depth =
-    input.difficulty === "HARD"
-      ? "Include scaling limits, failure modes, observability, and tradeoffs."
-      : input.difficulty === "MEDIUM"
-        ? "Include API boundaries, data flow, testing, and tradeoffs."
-        : "Focus on fundamentals, clear steps, and edge cases.";
-
-  const technicalPrompt =
-    input.difficulty === "HARD"
-      ? `Design a production-ready ${input.role} feature using ${stack}. ${depth}`
-      : `Explain how you would build a ${input.role} feature using ${stack}. ${depth}`;
-
-  return {
-    questions: [
+  const focus = input.focus?.trim() || `${input.role} interview readiness`;
+  const questionSets = {
+    EASY: [
       {
-        id: "q1",
-        prompt: technicalPrompt,
+        prompt: `For ${focus}, explain how you would build a small ${input.role} feature using ${stack}. Focus on clear steps, data flow, and edge cases.`,
         category: "technical",
-        expectedSignals: ["architecture", "edge cases", "testing", "tradeoffs"]
+        expectedSignals: ["requirements", "data flow", "edge cases", "basic testing"]
       },
       {
-        id: "q2",
-        prompt: `Describe a time you improved reliability or developer velocity on a ${input.role} project.`,
-        category: "behavioral",
-        expectedSignals: ["ownership", "impact", "metrics", "reflection"]
+        prompt: `For ${focus}, what frontend and backend responsibilities would you separate in a ${input.role} feature?`,
+        category: "architecture",
+        expectedSignals: ["component boundaries", "API boundary", "state", "validation"]
       },
       {
-        id: "q3",
-        prompt: `How would you debug a production issue in a stack that uses ${stack}?`,
+        prompt: `How would you test a simple ${focus} feature built with ${stack}?`,
+        category: "testing",
+        expectedSignals: ["unit tests", "integration tests", "happy path", "error path"]
+      }
+    ],
+    MEDIUM: [
+      {
+        prompt: `Design an authenticated ${focus} workflow for a ${input.role} role using ${stack}. Include API boundaries, data flow, testing, and tradeoffs.`,
+        category: "technical",
+        expectedSignals: ["auth", "API contract", "persistence", "tradeoffs"]
+      },
+      {
+        prompt: `How would you model data and validation for a medium-complexity ${focus} feature?`,
         category: "systems",
-        expectedSignals: ["triage", "logs", "metrics", "rollback plan"]
+        expectedSignals: ["schema", "validation", "relationships", "migration"]
+      },
+      {
+        prompt: `A user reports intermittent failures in a ${focus} workflow built with ${stack}. How would you debug it?`,
+        category: "debugging",
+        expectedSignals: ["reproduction", "logs", "metrics", "rollback"]
+      }
+    ],
+    HARD: [
+      {
+        prompt: `Design a production-ready ${focus} feature for a ${input.role} role using ${stack}. Include scaling limits, failure modes, observability, and tradeoffs.`,
+        category: "technical",
+        expectedSignals: ["architecture", "scaling", "failure modes", "observability"]
+      },
+      {
+        prompt: `How would you handle high traffic, retries, and partial failures in a ${focus} system using ${stack}?`,
+        category: "systems",
+        expectedSignals: ["rate limiting", "idempotency", "queues", "retries"]
+      },
+      {
+        prompt: `Create a rollout and monitoring plan for a risky ${focus} release.`,
+        category: "production",
+        expectedSignals: ["feature flags", "alerts", "rollback", "success metrics"]
       }
     ]
+  } satisfies Record<CreateInterviewInput["difficulty"], Array<{ prompt: string; category: string; expectedSignals: string[] }>>;
+
+  return {
+    questions: questionSets[input.difficulty].map((question, index) => ({ id: `q${index + 1}`, ...question }))
   };
 }
 

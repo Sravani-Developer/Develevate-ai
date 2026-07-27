@@ -23,7 +23,8 @@ describe("InterviewsService", () => {
     expect(created.questions).toHaveLength(3);
     expect(created.questions[0].prompt).toContain("Full Stack AI Engineer");
     expect(created.questions[0].prompt).toContain("TypeScript, React, NestJS, PostgreSQL");
-    expect(created.questions[0].expectedSignals).toEqual(expect.arrayContaining(["architecture", "testing", "tradeoffs"]));
+    expect(created.questions[0].expectedSignals).toEqual(expect.arrayContaining(["architecture", "scaling", "observability"]));
+    expect(created.questions[1].prompt).toContain("high traffic");
   });
 
   it("scores local answer fallbacks from production-readiness signals", async () => {

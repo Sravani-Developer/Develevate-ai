@@ -46,7 +46,8 @@ async function bootstrap() {
   app.useGlobalInterceptors(new SanitizeInterceptor());
 
   if (isProduction) app.enableShutdownHooks();
-  await app.listen(config.get<number>("PORT") ?? 4000);
+  const port = config.get<number>("PORT") ?? 4000;
+  await app.listen(port);
 }
 
 void bootstrap();

@@ -35,42 +35,72 @@ export class RoadmapsService {
 }
 
 function createLocalRoadmap(input: { targetRole: string; currentSkills: string[]; timelineWeeks: number }) {
-  const skills = input.currentSkills.length ? input.currentSkills.slice(0, 5).join(", ") : "current stack";
-  const midpoint = Math.max(2, Math.floor(input.timelineWeeks / 2));
-  const finalPrep = Math.max(midpoint + 1, input.timelineWeeks - 2);
+  const skills = input.currentSkills.length ? input.currentSkills.slice(0, 6).join(", ") : "current stack";
+  const weeks = Math.max(4, Math.min(16, input.timelineWeeks));
+  const baseMilestones = [
+    {
+      focus: `Baseline ${input.targetRole} readiness using ${skills}`,
+      deliverables: ["Skill-gap matrix", "Resume keyword baseline", "Mock interview scorecard"],
+      metrics: ["Complete one timed mock interview", "Identify top 5 missing role keywords"]
+    },
+    {
+      focus: `Strengthen core fundamentals for ${input.targetRole}`,
+      deliverables: ["Concept review", "Practice problems", "Role-specific notes"],
+      metrics: ["Complete one timed practice set", "Explain key concepts without notes"]
+    },
+    {
+      focus: `Build a portfolio feature with ${skills}`,
+      deliverables: ["Feature scope", "Implementation plan", "Working demo path"],
+      metrics: ["Demo one complete user workflow", "Document tradeoffs and constraints"]
+    },
+    {
+      focus: `Add data, state, or workflow depth for ${input.targetRole}`,
+      deliverables: ["Data model or state model", "Validation rules", "Error-state handling"],
+      metrics: ["Explain edge cases clearly", "Show realistic sample data"]
+    },
+    {
+      focus: `Add intelligent or automation proof for ${input.targetRole}`,
+      deliverables: ["Input contract", "Result-quality rubric", "Fallback behavior"],
+      metrics: ["Produce repeatable output", "Show graceful behavior when integrations are missing"]
+    },
+    {
+      focus: `Deepen system design and debugging readiness for ${input.targetRole}`,
+      deliverables: ["Architecture diagram", "Failure-mode checklist", "Debugging playbook"],
+      metrics: ["Explain tradeoffs in under 5 minutes", "Cover scaling, caching, and retries"]
+    },
+    {
+      focus: `Testing and quality hardening for ${skills}`,
+      deliverables: ["Unit tests", "Integration path", "Manual QA checklist"],
+      metrics: ["Typecheck, tests, and build pass", "Document known optional integrations"]
+    },
+    {
+      focus: `Production operations story for ${input.targetRole}`,
+      deliverables: ["Health or readiness checks", "Logging notes", "Monitoring plan"],
+      metrics: ["Explain what gets monitored", "Show recovery or fallback behavior"]
+    },
+    {
+      focus: "Portfolio narrative and resume targeting",
+      deliverables: ["Resume project bullets", "Demo script", "GitHub README proof"],
+      metrics: ["ATS score above 85", "Use metrics in every major project bullet"]
+    },
+    {
+      focus: "Interview loop execution",
+      deliverables: ["DSA practice log", "System design drills", "Behavioral STAR stories"],
+      metrics: ["Complete 3 mock interviews", "Prepare 6 strong project stories"]
+    },
+    {
+      focus: "Application pipeline and recruiter readiness",
+      deliverables: ["Target-company list", "Referral messages", "Application tracker"],
+      metrics: ["Apply to 15 targeted roles", "Follow up within 5 business days"]
+    },
+    {
+      focus: `Launch applications for ${input.targetRole}`,
+      deliverables: ["Final portfolio walkthrough", "GitHub pinned repos", "Production demo checklist"],
+      metrics: ["Apply to 20 targeted roles", "Demo project end to end in under 7 minutes"]
+    }
+  ];
 
   return {
-    milestones: [
-      {
-        week: 1,
-        focus: `Baseline ${input.targetRole} readiness using ${skills}`,
-        deliverables: ["Skill-gap checklist", "Portfolio backlog", "Interview baseline score"],
-        metrics: ["Complete one timed mock interview", "Identify top 5 missing keywords"]
-      },
-      {
-        week: Math.max(2, Math.floor(input.timelineWeeks / 4)),
-        focus: "Build proof through one production-style feature",
-        deliverables: ["Backend API", "Frontend workflow", "Database persistence", "Automated tests"],
-        metrics: ["One deployed or locally runnable feature", "Typecheck, tests, and build passing"]
-      },
-      {
-        week: midpoint,
-        focus: "Deepen system design and debugging readiness",
-        deliverables: ["Architecture notes", "Failure-mode checklist", "Observability plan"],
-        metrics: ["Explain tradeoffs in under 5 minutes", "Document rollback and monitoring strategy"]
-      },
-      {
-        week: finalPrep,
-        focus: "Interview loop and resume targeting",
-        deliverables: ["Role-specific resume", "Mock interview feedback log", "Project demo script"],
-        metrics: ["ATS score above 85", "Three polished STAR stories"]
-      },
-      {
-        week: input.timelineWeeks,
-        focus: `Launch applications for ${input.targetRole}`,
-        deliverables: ["Final portfolio walkthrough", "Recruiter pipeline", "Application tracker"],
-        metrics: ["Apply to 20 targeted roles", "Follow up with measurable project outcomes"]
-      }
-    ]
+    milestones: baseMilestones.slice(0, weeks).map((milestone, index) => ({ week: index + 1, ...milestone }))
   };
 }

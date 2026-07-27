@@ -22,45 +22,79 @@ In the Secure access panel, choose **Start demo mode**.
 
 ### 1. AI Mock Interview
 
-1. Select `Easy`, `Medium`, or `Hard`.
-2. Paste this sample answer:
+1. Enter:
+
+```text
+Target role: Senior Frontend Developer
+Interview stack: React, Next.js, TypeScript, Tailwind CSS
+Question focus: dashboard filtering and role-based access
+```
+
+2. Select `Easy`, `Medium`, or `Hard`.
+3. Click **Generate questions**.
+4. Choose one generated question and paste this sample answer:
 
 ```text
 I would clarify requirements, identify constraints, propose a scalable design, explain tradeoffs, cover failure modes, add tests, define metrics, and monitor the release with logs and dashboards.
 ```
 
-3. Click **Evaluate answer**.
-4. Confirm the score and feedback update.
+5. Click **Evaluate answer**.
+6. Confirm the score and feedback update.
 
 ### 2. Real-Time Coding Room
 
-Use JavaScript:
+Enter:
+
+```text
+Target role: QA Automation Engineer
+Coding topic: release risk
+Difficulty: Medium
+Language: JavaScript
+```
+
+Click **Generate challenge**. Then replace the starter code with this JavaScript solution:
 
 ```js
 const fs = require("fs");
 
-const input = fs.readFileSync(0, "utf8").trim().split(/\s+/).map(Number);
-const target = input[0];
-const nums = input.slice(1);
+const lines = fs.readFileSync(0, "utf8").trim().split(/\r?\n/);
 
-function twoSum(nums, target) {
-  const seen = new Map();
-  for (let i = 0; i < nums.length; i += 1) {
-    const need = target - nums[i];
-    if (seen.has(need)) return [seen.get(need), i];
-    seen.set(nums[i], i);
+function solve(inputLines) {
+  const count = Number(inputLines[0]);
+  const result = [];
+  const seen = new Set();
+
+  for (let i = 1; i <= count && i < inputLines.length; i += 1) {
+    const [feature, resultStatus, severity] = inputLines[i].trim().split(/\s+/);
+    if (!feature || !resultStatus || !severity) continue;
+    if (resultStatus === "fail" && severity === "high" && !seen.has(feature)) {
+      seen.add(feature);
+      result.push(feature);
+    }
   }
-  return [];
+
+  return result.join(",");
 }
 
-console.log(twoSum(nums, target).join(" "));
+console.log(solve(lines));
 ```
 
 Use stdin:
 
 ```text
-9
-2 7 11 15
+6
+login pass high
+filters fail high
+charts fail medium
+filters fail high
+rbac fail high
+export pass high
+```
+
+Expected output:
+
+```text
+filters,rbac
 ```
 
 In demo mode the UI confirms the run path. Real execution requires the backend plus Judge0 configuration.
@@ -75,28 +109,28 @@ Can we optimize this to O(n)?
 
 Use `docs/sample-resume.txt`, or upload a `.pdf`, `.docx`, `.txt`, or `.md` resume when the backend is running.
 
-In frontend-only demo mode, clicking **Analyze resume** without a backend shows local demo analysis. Real PDF/DOCX extraction runs in the API service.
+Paste a target job description and click **Analyze resume**. Frontend-only demo mode can compare the job description locally after a file is selected. Real PDF/DOCX extraction and saved analysis run in the API service after sign-in.
 
 ### 4. Career Roadmap
 
 Use:
 
 ```text
-Target role: Full Stack AI Engineer
-Current skills: React, TypeScript, Node.js, NestJS, PostgreSQL, Prisma, Docker
+Target role: Product Manager
+Current skills: Roadmapping, stakeholder management, analytics, user research
 ```
 
 Click **Generate** and confirm the roadmap updates.
 
 ### 5. Analytics
 
-Click **Refresh analytics** and confirm the demo metrics remain visible.
+Click **Refresh analytics**. In demo mode, confirm the section asks you to sign in for saved analytics and does not show fake metrics.
 
 ### 6. Admin And Subscription
 
 1. Click **Load overview**.
 2. Click **Activate pro**.
-3. Confirm the admin and subscription cards update.
+3. In demo mode, confirm both actions ask for sign-in instead of showing fake admin or billing data.
 
 ## Full Backend Check
 

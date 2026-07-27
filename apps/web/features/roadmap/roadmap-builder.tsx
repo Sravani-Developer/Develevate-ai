@@ -12,40 +12,35 @@ type Milestone = {
   week?: number;
   focus?: string;
   deliverables?: string[];
+  metrics?: string[];
 };
 
 type Roadmap = {
   milestones: Milestone[];
 };
 
-const fallbackMilestones: Milestone[] = [
-  { week: 1, focus: "Close fundamentals gaps and refresh DSA patterns" },
-  { week: 3, focus: "Build production projects with tests, CI, PostgreSQL, Redis" },
-  { week: 7, focus: "Mock interviews, resume targeting, system design drills" },
-  { week: 11, focus: "Applications, recruiter pipeline, final polish" }
-];
-
 export function RoadmapBuilder() {
   const accessToken = useSession((state) => state.accessToken);
-  const [targetRole, setTargetRole] = useState("Full-stack developer");
-  const [currentSkills, setCurrentSkills] = useState("React, TypeScript, Node.js");
+  const [targetRole, setTargetRole] = useState("");
+  const [currentSkills, setCurrentSkills] = useState("");
   const [roadmap, setRoadmap] = useState<Roadmap>();
-  const [status, setStatus] = useState("Sign in to generate and save a personalized roadmap.");
+  const [status, setStatus] = useState("Enter a target role and current skills to generate a personalized roadmap.");
   const [loading, setLoading] = useState(false);
 
   function useDemoRoadmap(message = "Demo roadmap generated locally. Start the API to save personalized plans.") {
     setRoadmap({
-      milestones: [
-        { week: 1, focus: `Map gaps for ${targetRole}`, deliverables: ["Skills inventory", "Interview baseline"] },
-        { week: 3, focus: "Build portfolio proof", deliverables: ["Full-stack feature", "Tests and CI"] },
-        { week: 7, focus: "Practice interviews", deliverables: ["Mock interview loop", "Resume iteration"] },
-        { week: 12, focus: "Launch applications", deliverables: ["Final resume", "Recruiter pipeline"] }
-      ]
+      milestones: createLocalMilestones(targetRole.trim(), parseSkills(currentSkills), 12)
     });
     setStatus(message);
   }
 
   async function generateRoadmap() {
+    const skills = parseSkills(currentSkills);
+    if (!targetRole.trim() || !skills.length) {
+      setRoadmap(undefined);
+      setStatus("Enter both target role and current skills before generating a roadmap.");
+      return;
+    }
     if (!accessToken) {
       useDemoRoadmap("Demo roadmap generated locally. Sign in with a running API to save it.");
       return;
@@ -57,8 +52,8 @@ export function RoadmapBuilder() {
         accessToken,
         method: "POST",
         body: JSON.stringify({
-          targetRole,
-          currentSkills: currentSkills.split(",").map((skill) => skill.trim()).filter(Boolean),
+          targetRole: targetRole.trim(),
+          currentSkills: skills,
           timelineWeeks: 12
         })
       });
@@ -71,7 +66,7 @@ export function RoadmapBuilder() {
     }
   }
 
-  const milestones = roadmap?.milestones?.length ? roadmap.milestones : fallbackMilestones;
+  const milestones = roadmap?.milestones ?? [];
 
   return (
     <section id="roadmap" className="space-y-4">
@@ -83,11 +78,11 @@ export function RoadmapBuilder() {
         <div className="grid w-full max-w-4xl gap-3 sm:grid-cols-2">
           <label className="block text-xs font-medium text-muted-foreground">
             <span className="mb-2 block">Target role</span>
-            <Input aria-label="Target role" className="focus:ring-2" onChange={(event) => setTargetRole(event.target.value)} value={targetRole} />
+            <Input aria-label="Target role" className="focus:ring-2" onChange={(event) => setTargetRole(event.target.value)} placeholder="Example: Senior Frontend Developer" value={targetRole} />
           </label>
           <label className="block text-xs font-medium text-muted-foreground">
             <span className="mb-2 block">Current skills</span>
-            <Input aria-label="Current skills" className="focus:ring-2" onChange={(event) => setCurrentSkills(event.target.value)} value={currentSkills} />
+            <Input aria-label="Current skills" className="focus:ring-2" onChange={(event) => setCurrentSkills(event.target.value)} placeholder="Example: React, Next.js, TypeScript, PostgreSQL" value={currentSkills} />
           </label>
           <Button className="sm:col-span-2 sm:justify-self-end" disabled={loading} onClick={generateRoadmap}>
             {loading ? "Generating..." : "Generate"}
@@ -95,17 +90,73 @@ export function RoadmapBuilder() {
         </div>
       </div>
       <Card>
-        <div className="grid gap-4 lg:grid-cols-4">
-          {milestones.map((milestone, index) => (
-            <div className="rounded-md border border-border p-4" key={`${milestone.week ?? index}-${milestone.focus}`}>
-              <CheckCircle2 className="h-5 w-5 text-success" />
-              <p className="mt-3 text-sm font-semibold">Week {milestone.week ?? index + 1}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{milestone.focus ?? milestone.deliverables?.[0] ?? "Career milestone"}</p>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {milestones.length ? (
+            milestones.map((milestone, index) => (
+              <div className="rounded-md border border-border p-4" key={`${milestone.week ?? index}-${milestone.focus}`}>
+                <CheckCircle2 className="h-5 w-5 text-success" />
+                <p className="mt-3 text-sm font-semibold">Week {milestone.week ?? index + 1}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{milestone.focus ?? milestone.deliverables?.[0] ?? "Career milestone"}</p>
+                {!!milestone.deliverables?.length && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Deliverables</p>
+                    <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
+                      {milestone.deliverables.slice(0, 3).map((item) => (
+                        <li key={item}>- {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {!!milestone.metrics?.length && (
+                  <div className="mt-3 rounded-md bg-muted p-2 text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">Metric: </span>
+                    {milestone.metrics[0]}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground md:col-span-2 xl:col-span-3">
+              No roadmap generated yet. Add the role you want, list your current skills, and click Generate.
             </div>
-          ))}
+          )}
         </div>
         <p className="mt-4 text-xs text-muted-foreground">{status}</p>
       </Card>
     </section>
   );
+}
+
+function parseSkills(value: string) {
+  return value
+    .split(",")
+    .map((skill) => skill.trim())
+    .filter(Boolean);
+}
+
+function createLocalMilestones(targetRole: string, currentSkills: string[], timelineWeeks: number): Milestone[] {
+  const skills = currentSkills.slice(0, 5).join(", ");
+  const role = targetRole || "target role";
+  const stack = skills || "selected skills";
+  const plans = [
+    [`Map ${role} requirements against ${stack}`, ["Skills inventory", "Gap list", "Interview baseline"], ["Identify top 5 missing capabilities"]],
+    [`Build fundamentals needed for ${role}`, ["Learning plan", "DSA refresh", "Core concept notes"], ["Complete one timed practice set"]],
+    [`Create a portfolio feature using ${stack}`, ["Feature scope", "Working UI", "API contract"], ["Demo one user flow end to end"]],
+    [`Add persistence and validation for ${role} work`, ["Data model", "Validation rules", "Error states"], ["Explain schema and edge cases clearly"]],
+    [`Improve quality for ${stack}`, ["Unit tests", "Integration path", "Bug checklist"], ["Typecheck and tests pass"]],
+    [`Prepare system design for ${role}`, ["Architecture notes", "Tradeoff matrix", "Scaling limits"], ["Explain design in under 5 minutes"]],
+    [`Add production readiness to the portfolio project`, ["Auth or access control", "Logging plan", "Failure handling"], ["Show graceful failure behavior"]],
+    [`Strengthen resume proof for ${role}`, ["Role-specific bullets", "Keyword pass", "Impact metrics"], ["ATS score above 85"]],
+    [`Practice interviews using ${stack}`, ["Mock question set", "Answer review", "STAR stories"], ["Complete 2 recorded mock rounds"]],
+    [`Polish deployment and documentation`, ["README", "Setup guide", "Demo script"], ["Fresh setup works from docs"]],
+    [`Build recruiter pipeline for ${role}`, ["Target company list", "Referral message", "Application tracker"], ["Apply to 15 targeted roles"]],
+    [`Launch final ${role} application package`, ["Final resume", "Pinned GitHub repos", "Portfolio walkthrough"], ["Demo project in under 7 minutes"]]
+  ];
+
+  return plans.slice(0, Math.max(4, Math.min(12, timelineWeeks))).map(([focus, deliverables, metrics], index) => ({
+    week: index + 1,
+    focus: focus as string,
+    deliverables: deliverables as string[],
+    metrics: metrics as string[]
+  }));
 }

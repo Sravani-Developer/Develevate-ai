@@ -246,7 +246,7 @@ function normalizeDockerError(error: unknown) {
     status: dockerMissing ? "runner_unavailable" : "failed",
     stdout: executionError.stdout ?? "",
     stderr: dockerMissing
-      ? "Local Docker runner is unavailable. Start Docker Desktop, then try again."
+      ? "Hosted code execution is not configured. Use local Docker for development, or configure Judge0 for production code execution."
       : stderr,
     time: null
   };

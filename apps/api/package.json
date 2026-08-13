@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run build && node ../../scripts/run-with-env.cjs node dist/apps/api/src/main.js",
-    "build": "npm run prisma:generate && node ./node_modules/@nestjs/cli/bin/nest.js build",
+    "build": "npm run prisma:generate && node -e \"process.argv.push('nest', 'build'); require(require.resolve('@nestjs/cli/bin/nest'))\"",
     "start": "node dist/apps/api/src/main.js",
     "lint": "eslint \"src/**/*.ts\"",
     "test": "node ../../node_modules/jest/bin/jest.js --runInBand",

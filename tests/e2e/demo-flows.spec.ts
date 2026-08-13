@@ -32,7 +32,7 @@ test("local mode supports the main product flows", async ({ page }) => {
   await page.getByRole("button", { name: /review code/i }).click();
   await expect(page.getByText(/stdin parsing|input handling/i).first()).toBeVisible();
   await page.getByRole("button", { name: /^Run$/ }).click();
-  await expect(page.getByText(/Local run prepared for javascript/i)).toBeVisible();
+  await expect(page.getByText(/Execution finished, but no output was returned/i)).toBeVisible();
   await page.getByPlaceholder("Send a room message").fill("Can we optimize this to O(n)?");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByText(/Candidate: Can we optimize this to O\(n\)\?/)).toBeVisible();

@@ -28,6 +28,27 @@ export async function api<T>(path: string, init?: ApiInit): Promise<T> {
 
 export { API_URL };
 
+export function getFriendlyErrorMessage(error: unknown, fallback = "Something went wrong. Please try again.") {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  const normalized = message.toLowerCase();
+
+  if (!message || normalized === "undefined" || normalized === "null") return fallback;
+  if (normalized.includes("failed to fetch") || normalized.includes("networkerror")) {
+    return "Service is temporarily unavailable. If you are running locally, start the API server and try again.";
+  }
+  if (normalized.includes("invalid credentials")) return "Invalid email or password.";
+  if (normalized.includes("invalid refresh token")) return "Your session expired. Please sign in again.";
+  if (normalized.includes("unauthorized") || normalized.includes("401")) return "Please sign in again to continue.";
+  if (normalized.includes("forbidden") || normalized.includes("403")) return "You do not have permission to perform this action.";
+  if (normalized.includes("too many requests") || normalized.includes("429")) return "Too many requests. Wait a minute and try again.";
+  if (normalized.includes("payload too large") || normalized.includes("413")) return "The uploaded file is too large. Try a smaller file.";
+  if (normalized.includes("unsupported") || normalized.includes("resume upload supports")) return message;
+  if (normalized.includes("judge0 is not configured")) return "Code execution is in local preview mode. Configure Judge0 to run code remotely.";
+  if (message.trim().startsWith("{") || message.includes("\"statusCode\"")) return fallback;
+
+  return message;
+}
+
 async function readErrorMessage(response: Response) {
   const text = await response.text();
   if (!text) return "";

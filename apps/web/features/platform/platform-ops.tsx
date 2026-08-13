@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { api } from "@/lib/api";
+import { api, getFriendlyErrorMessage } from "@/lib/api";
 import { useSession } from "@/store/session";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,16 +24,22 @@ export function PlatformOps() {
   const mode = useSession((state) => state.mode);
   const [subscription, setSubscription] = useState<Subscription>();
   const [admin, setAdmin] = useState<AdminOverview>();
-  const [status, setStatus] = useState("Subscription and admin calls are ready after sign-in.");
+  const [adminStatus, setAdminStatus] = useState("Admin-only platform overview endpoint.");
+  const [adminStatusTone, setAdminStatusTone] = useState<"info" | "success" | "error">("info");
+  const [subscriptionStatus, setSubscriptionStatus] = useState("Free and pro plan boundaries with checkout endpoint.");
+  const [subscriptionStatusTone, setSubscriptionStatusTone] = useState<"info" | "success" | "error">("info");
   const [loading, setLoading] = useState<"subscription" | "admin">();
 
   async function activateSubscription() {
     if (!accessToken || mode !== "authenticated") {
       setSubscription(undefined);
-      setStatus("Sign in to activate a subscription.");
+      setSubscriptionStatus("Sign in to activate a subscription.");
+      setSubscriptionStatusTone("error");
       return;
     }
     setLoading("subscription");
+    setSubscriptionStatus("Activating pro plan...");
+    setSubscriptionStatusTone("info");
     try {
       const result = await api<Subscription>("/subscriptions/checkout", {
         accessToken,
@@ -41,10 +47,12 @@ export function PlatformOps() {
         body: JSON.stringify({ plan: "pro" })
       });
       setSubscription(result);
-      setStatus("Subscription endpoint responded successfully.");
+      setSubscriptionStatus("Pro plan activated in local/test mode.");
+      setSubscriptionStatusTone("success");
     } catch (error) {
       setSubscription(undefined);
-      setStatus(error instanceof Error ? `Unable to activate subscription. ${error.message}` : "Unable to activate subscription.");
+      setSubscriptionStatus(getFriendlyErrorMessage(error, "Unable to activate subscription. Try again later."));
+      setSubscriptionStatusTone("error");
     } finally {
       setLoading(undefined);
     }
@@ -53,17 +61,22 @@ export function PlatformOps() {
   async function loadAdminOverview() {
     if (!accessToken || mode !== "authenticated") {
       setAdmin(undefined);
-      setStatus("Sign in as an ADMIN user to load platform overview.");
+      setAdminStatus("Sign in as an ADMIN user to load platform overview.");
+      setAdminStatusTone("error");
       return;
     }
     setLoading("admin");
+    setAdminStatus("Loading admin overview...");
+    setAdminStatusTone("info");
     try {
       const result = await api<AdminOverview>("/admin/overview", { accessToken });
       setAdmin(result);
-      setStatus("Admin overview loaded from backend.");
+      setAdminStatus("Admin overview loaded from backend.");
+      setAdminStatusTone("success");
     } catch (error) {
       setAdmin(undefined);
-      setStatus(error instanceof Error ? `Unable to load admin overview. ${error.message}` : "Unable to load admin overview.");
+      setAdminStatus(getFriendlyErrorMessage(error, "Only ADMIN users can load the platform overview."));
+      setAdminStatusTone("error");
     } finally {
       setLoading(undefined);
     }
@@ -79,6 +92,7 @@ export function PlatformOps() {
         <Button className="mt-4 w-full" disabled={loading === "admin"} onClick={loadAdminOverview}>
           {loading === "admin" ? "Loading..." : "Load overview"}
         </Button>
+        <StatusMessage message={adminStatus} tone={adminStatusTone} />
       </Card>
       <Card>
         <p className="font-semibold">Subscription system</p>
@@ -88,12 +102,31 @@ export function PlatformOps() {
         <Button className="mt-4 w-full" disabled={loading === "subscription"} onClick={activateSubscription}>
           {loading === "subscription" ? "Activating..." : "Activate pro"}
         </Button>
+        <StatusMessage message={subscriptionStatus} tone={subscriptionStatusTone} />
       </Card>
       <Card>
         <p className="font-semibold">Enterprise safeguards</p>
         <p className="mt-2 text-sm text-muted-foreground">Rate limiting, Helmet, sanitization, secure cookies, RBAC, logging, and typed config.</p>
-        <p className="mt-4 text-xs text-muted-foreground">{status}</p>
+        <p className="mt-4 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">Protected routes, RBAC, and subscription calls show inline success/error states.</p>
       </Card>
     </section>
+  );
+}
+
+function StatusMessage({ message, tone }: { message: string; tone: "info" | "success" | "error" }) {
+  return (
+    <p
+      aria-live="polite"
+      className={`mt-3 rounded-md border px-3 py-2 text-sm ${
+        tone === "error"
+          ? "border-red-300 bg-red-50 text-red-700"
+          : tone === "success"
+            ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+            : "border-border bg-muted text-muted-foreground"
+      }`}
+      role={tone === "error" ? "alert" : "status"}
+    >
+      {message}
+    </p>
   );
 }

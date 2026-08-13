@@ -71,51 +71,51 @@ function createLocalInterview(input: CreateInterviewInput) {
   const questionSets = {
     EASY: [
       {
-        prompt: `For ${focus}, explain how you would build a small ${input.role} feature using ${stack}. Focus on clear steps, data flow, and edge cases.`,
+        prompt: `Easy fundamentals: for ${focus}, explain the simplest useful ${input.role} feature you would build with ${stack}. Cover user flow, basic state, and one validation rule.`,
         category: "technical",
-        expectedSignals: ["requirements", "data flow", "edge cases", "basic testing"]
+        expectedSignals: ["user flow", "state", "validation", "basic testing"]
       },
       {
-        prompt: `For ${focus}, what frontend and backend responsibilities would you separate in a ${input.role} feature?`,
+        prompt: `Easy boundaries: for ${focus}, list what belongs in the UI, what belongs in the API, and what data contract you would expect.`,
         category: "architecture",
         expectedSignals: ["component boundaries", "API boundary", "state", "validation"]
       },
       {
-        prompt: `How would you test a simple ${focus} feature built with ${stack}?`,
+        prompt: `Easy testing: describe the happy path and two error cases you would test for ${focus} using ${stack}.`,
         category: "testing",
         expectedSignals: ["unit tests", "integration tests", "happy path", "error path"]
       }
     ],
     MEDIUM: [
       {
-        prompt: `Design an authenticated ${focus} workflow for a ${input.role} role using ${stack}. Include API boundaries, data flow, testing, and tradeoffs.`,
+        prompt: `Medium implementation: design an authenticated ${focus} workflow for a ${input.role} using ${stack}. Include API boundaries, state ownership, caching, testing, and tradeoffs.`,
         category: "technical",
-        expectedSignals: ["auth", "API contract", "persistence", "tradeoffs"]
+        expectedSignals: ["auth", "API contract", "state ownership", "caching", "tradeoffs"]
       },
       {
-        prompt: `How would you model data and validation for a medium-complexity ${focus} feature?`,
+        prompt: `Medium data modeling: how would you model filters, permissions, validation, and persisted user preferences for ${focus}?`,
         category: "systems",
-        expectedSignals: ["schema", "validation", "relationships", "migration"]
+        expectedSignals: ["filters", "permissions", "validation", "preferences"]
       },
       {
-        prompt: `A user reports intermittent failures in a ${focus} workflow built with ${stack}. How would you debug it?`,
+        prompt: `Medium debugging: users report intermittent failures in ${focus}. Walk through reproduction, logs, metrics, likely root causes, and a safe fix plan.`,
         category: "debugging",
         expectedSignals: ["reproduction", "logs", "metrics", "rollback"]
       }
     ],
     HARD: [
       {
-        prompt: `Design a production-ready ${focus} feature for a ${input.role} role using ${stack}. Include scaling limits, failure modes, observability, and tradeoffs.`,
+        prompt: `Hard architecture: design a production-ready ${focus} system for a ${input.role} using ${stack}. Include scaling limits, failure modes, observability, security, and measurable success metrics.`,
         category: "technical",
-        expectedSignals: ["architecture", "scaling", "failure modes", "observability"]
+        expectedSignals: ["architecture", "scaling", "failure modes", "observability", "security", "metrics"]
       },
       {
-        prompt: `How would you handle high traffic, retries, and partial failures in a ${focus} system using ${stack}?`,
+        prompt: `Hard reliability: how would you handle high traffic, stale permissions, retries, partial failures, and backward-compatible API changes for ${focus}?`,
         category: "systems",
-        expectedSignals: ["rate limiting", "idempotency", "queues", "retries"]
+        expectedSignals: ["rate limiting", "permissions", "idempotency", "retries", "compatibility"]
       },
       {
-        prompt: `Create a rollout and monitoring plan for a risky ${focus} release.`,
+        prompt: `Hard launch strategy: create a phased rollout, alerting, rollback, and incident-response plan for a risky ${focus} release.`,
         category: "production",
         expectedSignals: ["feature flags", "alerts", "rollback", "success metrics"]
       }

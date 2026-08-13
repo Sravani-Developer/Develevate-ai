@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { RefreshCcw } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { api } from "@/lib/api";
+import { api, getFriendlyErrorMessage } from "@/lib/api";
 import { useSession } from "@/store/session";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,25 +20,47 @@ type AnalyticsResponse = {
 export function AnalyticsDashboard() {
   const accessToken = useSession((state) => state.accessToken);
   const mode = useSession((state) => state.mode);
+  const setSession = useSession((state) => state.setSession);
   const [analytics, setAnalytics] = useState<AnalyticsResponse>();
   const [status, setStatus] = useState("Sign in to load saved analytics.");
+  const [statusTone, setStatusTone] = useState<"info" | "success" | "error">("info");
   const [loading, setLoading] = useState(false);
 
   async function loadAnalytics() {
     if (!accessToken || mode !== "authenticated") {
       setAnalytics(undefined);
-      setStatus(mode === "demo" ? "Demo mode is active. Sign in to load saved analytics." : "Sign in to load saved analytics.");
+      setStatus(mode === "demo" ? "Local mode is active. Sign in to load saved analytics." : "Sign in to load saved analytics.");
+      setStatusTone("info");
       return;
     }
     setLoading(true);
     setStatus("Loading analytics...");
+    setStatusTone("info");
     try {
       const result = await api<AnalyticsResponse>("/analytics", { accessToken });
       setAnalytics(result);
       setStatus("Analytics loaded from backend.");
+      setStatusTone("success");
     } catch (error) {
+      if (isUnauthorizedError(error)) {
+        try {
+          const refreshed = await api<{ accessToken: string }>("/auth/refresh", { method: "POST" });
+          setSession(refreshed.accessToken, "authenticated");
+          const result = await api<AnalyticsResponse>("/analytics", { accessToken: refreshed.accessToken });
+          setAnalytics(result);
+          setStatus("Session restored. Analytics loaded from backend.");
+          setStatusTone("success");
+          return;
+        } catch {
+          setAnalytics(undefined);
+          setStatus("Your session expired. Please sign in again.");
+          setStatusTone("error");
+          return;
+        }
+      }
       setAnalytics(undefined);
-      setStatus(error instanceof Error ? `Unable to load analytics. ${error.message}` : "Unable to load analytics.");
+      setStatus(getFriendlyErrorMessage(error, "Unable to load analytics. Try again later."));
+      setStatusTone("error");
     } finally {
       setLoading(false);
     }
@@ -67,7 +89,19 @@ export function AnalyticsDashboard() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Analytics dashboard</h2>
         <div className="flex items-center gap-3">
-          <p className="text-xs text-muted-foreground">{status}</p>
+          <p
+            aria-live="polite"
+            className={`rounded-md border px-3 py-2 text-sm ${
+              statusTone === "error"
+                ? "border-red-300 bg-red-50 text-red-700"
+                : statusTone === "success"
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                  : "border-border bg-muted text-muted-foreground"
+            }`}
+            role={statusTone === "error" ? "alert" : "status"}
+          >
+            {status}
+          </p>
           <Button className="bg-muted text-foreground" disabled={loading} onClick={loadAnalytics} type="button">
             <RefreshCcw className="h-4 w-4" />
             {loading ? "Refreshing..." : "Refresh analytics"}
@@ -122,4 +156,9 @@ export function AnalyticsDashboard() {
       </div>
     </section>
   );
+}
+
+function isUnauthorizedError(error: unknown) {
+  if (!(error instanceof Error)) return false;
+  return error.message.includes("401") || error.message.toLowerCase().includes("unauthorized") || error.message.toLowerCase().includes("sign in again");
 }
